@@ -735,6 +735,40 @@
     return 'company';
   }
 
+  function isLikelyEntityName(name) {
+    const n = normaliseKey(name);
+    if (!n) return false;
+
+    const entityTokens = [
+      'pty',
+      'ltd',
+      'limited',
+      'llc',
+      'inc',
+      'corp',
+      'corporation',
+      'company',
+      'co',
+      'trust',
+      'trustee',
+      'fund',
+      'smsf',
+      'superannuation',
+      'partners',
+      'partnership',
+      'holdings',
+      'group',
+      'nominees'
+    ];
+
+    return entityTokens.some(token => new RegExp(`\\b${token}\\b`).test(n));
+  }
+
+  function isW8BENEFormName(formName) {
+    const compact = normaliseKey(formName).replace(/[^a-z0-9]/g, '');
+    return compact.includes('w8bene');
+  }
+
   function resetDefaults() {
     cfFormType.value = 'W-8BEN';
     cfCitizenship.value = 'Australia';
@@ -834,9 +868,9 @@
     pendingBulkRecords = records.slice();
     bulkDobContainer.innerHTML = '';
 
-    pendingBulkRecords
-      .filter(r => r.formType === 'W-8BEN')
-      .forEach((record, index) => {
+    pendingBulkRecords.forEach((record, index) => {
+      if (record.formType !== 'W-8BEN') return;
+
         const card = document.createElement('div');
         card.className = 'rounded-xl border border-gray-200 p-4';
 
@@ -1333,13 +1367,18 @@
       const mailingAddress = [mailingLine1, mailingLine2].filter(Boolean).join(', ');
       const mailingCity = [mailingSuburbState, mailingPostcode].filter(Boolean).join(' ');
       const expiryIso = parseDDMMYYYYtoISO(expiryDateRaw);
-      const isEntity = String(formName).toUpperCase().includes('W-8BEN-E');
+      const inferredEntityType = inferEntityType(ownerName);
+      const hasFormName = !!String(formName || '').trim();
+      const isEntity =
+        isW8BENEFormName(formName) ||
+        isW8BENEFormName(formStatus) ||
+        (!hasFormName && isLikelyEntityName(ownerName));
 
       const hasMinimumData = [accountNumber, ownerName, formName].some(Boolean);
       if (!hasMinimumData) return null;
 
       if (isEntity) {
-        const entityType = inferEntityType(ownerName);
+        const entityType = inferredEntityType;
         const beneDefaults = BENE_DEFAULTS[entityType];
         return {
           id: uid(),
@@ -1408,6 +1447,62 @@
     return parsed;
   }
 
+  function convertW8BENtoW8BENE(record) {
+    const ownerName = record.name || record.signature || '';
+    const entityType = inferEntityType(ownerName);
+    const beneDefaults = BENE_DEFAULTS[entityType];
+
+    return {
+      id: record.id || uid(),
+      accountNumber: record.accountNumber || '',
+      reference: record.reference || record.accountNumber || '',
+      formType: 'W-8BEN-E',
+      entityType,
+      orgName: ownerName,
+      countryOfIncorp: record.country || record.citizenship || 'Australia',
+      permanentAddress: record.address || '',
+      permanentCity: record.city || '',
+      permanentCountry: record.country || 'Australia',
+      entityMailAddress: record.mailAddress || '',
+      entityMailCity: record.mailCity || '',
+      entityMailCountry: record.mailCountry || '',
+      entityFtin: '',
+      entityNoFtin: true,
+      hasNoUSOwners: true,
+      entityPrintName: ownerName,
+      usTin: '',
+      giin: '',
+      disregardedName: '',
+      claimTreaty: true,
+      treatyCountry: record.citizenship || 'Australia',
+      lobText: DEFAULT_LOB_TEXT,
+      chapter3Index: beneDefaults.chapter3Index,
+      chapter3Label: beneDefaults.chapter3Label,
+      chapter4Value: beneDefaults.chapter4Value,
+      chapter4Label: beneDefaults.chapter4Label,
+      sigDate: record.sigDate || '',
+      expiryDate: record.expiryDate || '',
+      importedFormStatus: record.importedFormStatus || '',
+      updatedAt: new Date().toISOString()
+    };
+  }
+
+  function normalizeBulkParsedRecords(records) {
+    return records.map(record => {
+      if (record.formType !== 'W-8BEN') return record;
+
+      const ownerName = record.name || record.signature || '';
+      const entityByName = isLikelyEntityName(ownerName);
+      const entityByStatus = isW8BENEFormName(record.importedFormStatus);
+
+      if (entityByName || entityByStatus) {
+        return convertW8BENtoW8BENE(record);
+      }
+
+      return record;
+    });
+  }
+
   function commitBulkImport(records) {
     upsertMany(records);
     closeBulkDobModal();
@@ -1445,7 +1540,7 @@
 
   bulkImportParseBtn.addEventListener('click', () => {
     try {
-      const parsed = parseExcelBulkRows(bulkImportTextarea.value);
+      const parsed = normalizeBulkParsedRecords(parseExcelBulkRows(bulkImportTextarea.value));
       const needsDob = parsed.filter(r => r.formType === 'W-8BEN');
 
       if (!parsed.length) {
