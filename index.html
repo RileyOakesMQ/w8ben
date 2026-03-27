@@ -382,7 +382,9 @@
 
       <div class="p-6 space-y-4">
         <div class="rounded-xl bg-blue-50 border border-blue-100 p-4 text-sm text-blue-900">
-          Paste rows directly from Excel. The importer expects tab-separated columns with headers like:
+          Paste rows directly from Excel. You can paste with or without the header row.
+          If headers are present, they can appear on any row and will be auto-detected.
+          The expected tab-separated columns are:
           <strong>Account Number</strong>, <strong>Name of Beneficial Owner</strong>, <strong>Permanent Residence Address Line 1</strong>,
           <strong>Suburb and State</strong>, <strong>Post Code</strong>, <strong>Resident Country</strong>,
           <strong>Mailing Address Address Line 1</strong>, <strong>Mailing Address Suburb and State</strong>,
@@ -1237,19 +1239,66 @@
       .map(l => l.trimEnd())
       .filter(l => l.trim() !== '');
 
-    if (lines.length < 2) {
-      throw new Error('Paste at least a header row and one data row.');
+    if (!lines.length) {
+      throw new Error('Paste at least one data row.');
     }
 
     const rows = lines.map(line => line.split('\t'));
-    const headers = rows[0].map(normaliseKey);
-    const dataRows = rows.slice(1);
+    const canonicalColumns = [
+      'account number',
+      'name of beneficial owner',
+      'permanent residence address line 1',
+      'permanent residence address line 2',
+      'suburb and state',
+      'post code',
+      'resident country',
+      'mailing address address line 1',
+      'mailing address address line 2',
+      'mailing address suburb and state',
+      'mailing address postcode',
+      'mailing address resident country',
+      'tax residency country',
+      'form name',
+      'form status',
+      'expiry date'
+    ];
+    const canonicalIndex = Object.fromEntries(canonicalColumns.map((key, idx) => [key, idx]));
+
+    const rowHeaderMatchCount = (row) => {
+      const cells = row.map(normaliseKey);
+      return cells.filter(cell => canonicalColumns.includes(cell)).length;
+    };
+
+    // Accept headers anywhere in the pasted block (for example, after a title row).
+    let headerRowIndex = -1;
+    let bestHeaderMatch = -1;
+    rows.forEach((row, idx) => {
+      const matches = rowHeaderMatchCount(row);
+      if (matches > bestHeaderMatch) {
+        bestHeaderMatch = matches;
+        headerRowIndex = idx;
+      }
+    });
+
+    const hasHeader = bestHeaderMatch >= 3;
+    const headers = hasHeader ? rows[headerRowIndex].map(normaliseKey) : [];
+    const dataRows = hasHeader ? rows.slice(headerRowIndex + 1) : rows;
 
     const headerIndex = (names) => {
       const normalisedNames = names.map(normaliseKey);
-      for (let i = 0; i < headers.length; i++) {
-        if (normalisedNames.includes(headers[i])) return i;
+      if (hasHeader) {
+        for (let i = 0; i < headers.length; i++) {
+          if (normalisedNames.includes(headers[i])) return i;
+        }
+        return -1;
       }
+
+      for (const name of normalisedNames) {
+        if (Object.prototype.hasOwnProperty.call(canonicalIndex, name)) {
+          return canonicalIndex[name];
+        }
+      }
+
       return -1;
     };
 
@@ -1258,7 +1307,10 @@
       return idx >= 0 ? String(row[idx] || '').trim() : '';
     };
 
-    return dataRows.map(row => {
+    const parsed = dataRows
+      .filter(row => row.some(cell => String(cell || '').trim() !== ''))
+      .filter(row => rowHeaderMatchCount(row) < 3)
+      .map(row => {
       const accountNumber = getCell(row, ['account number']);
       const ownerName = getCell(row, ['name of beneficial owner']);
       const formName = getCell(row, ['form name']);
@@ -1282,6 +1334,9 @@
       const mailingCity = [mailingSuburbState, mailingPostcode].filter(Boolean).join(' ');
       const expiryIso = parseDDMMYYYYtoISO(expiryDateRaw);
       const isEntity = String(formName).toUpperCase().includes('W-8BEN-E');
+
+      const hasMinimumData = [accountNumber, ownerName, formName].some(Boolean);
+      if (!hasMinimumData) return null;
 
       if (isEntity) {
         const entityType = inferEntityType(ownerName);
@@ -1343,7 +1398,14 @@
         importedFormStatus: formStatus,
         updatedAt: new Date().toISOString()
       };
-    });
+    })
+      .filter(Boolean);
+
+    if (!parsed.length) {
+      throw new Error('No valid rows found. Include the expected column order or recognizable headers.');
+    }
+
+    return parsed;
   }
 
   function commitBulkImport(records) {
