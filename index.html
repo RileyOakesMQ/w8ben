@@ -949,19 +949,20 @@
     setCheckSafe(form, fields, `${P2}.c2_1[0]`, !!record.entityNoFtin, PDFCheckBox);
     setTextSafe(form, fields, `${P2}.f2_4[0]`, record.reference || '', PDFTextField);
 
-    if (record.claimTreaty) {
-      setCheckSafe(form, fields, `${P2}.c2_3[0]`, true, PDFCheckBox);
-      setTextSafe(form, fields, `${P2}.f2_9[0]`, record.treatyCountry || 'Australia', PDFTextField);
-      setCheckSafe(form, fields, `${P2}.c2_4[0]`, true, PDFCheckBox);
-      setCheckSafe(form, fields, `${P2}.c2_5[5]`, true, PDFCheckBox);
-      setTextSafe(form, fields, `${P2}.f2_10[0]`, record.lobText || DEFAULT_LOB_TEXT, PDFTextField);
-    }
+   if (record.claimTreaty) {
+  setCheckSafe(form, fields, `${P2}.c2_3[0]`, true, PDFCheckBox);
+  setTextSafe(form, fields, `${P2}.f2_9[0]`, record.treatyCountry || 'Australia', PDFTextField);
+  setCheckSafe(form, fields, `${P2}.c2_4[0]`, true, PDFCheckBox);
+  setCheckSafe(form, fields, `${P2}.c2_5[5]`, true, PDFCheckBox);
+  setTextSafe(form, fields, `${P2}.f2_10[0]`, record.lobText || DEFAULT_LOB_TEXT, PDFTextField);
+}
 
-    applyBeneFollowUp(form, fields, record, PDFCheckBox, PDFTextField);
+applyBeneFollowUp(form, fields, record, PDFCheckBox, PDFTextField);
 
-    setTextSafe(form, fields, `${P8}.f8_1[0]`, record.entityPrintName || record.orgName || '', PDFTextField);
-    setTextSafe(form, fields, `${P8}.f8_2[0]`, formatDateMMDDYYYY(record.sigDate) || '', PDFTextField);
-    setCheckSafe(form, fields, `${P8}.c8_3[0]`, true, PDFCheckBox);
+// Final certification page
+setCheckSafe(form, fields, `${P8}.c8_3[0]`, true, PDFCheckBox);
+setTextSafe(form, fields, `${P8}.f8_31[0]`, record.entityPrintName || record.orgName || '', PDFTextField);
+setTextSafe(form, fields, `${P8}.f8_32[0]`, formatDateMMDDYYYY(record.sigDate) || '', PDFTextField);
 
     const pdfBytes = await pdfDoc.save();
     downloadBlob(pdfBytes, `${safeFilename(record.orgName || 'entity')}-W8BENE.pdf`);
