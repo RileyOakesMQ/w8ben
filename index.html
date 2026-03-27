@@ -1,0 +1,677 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>W-8BEN Form Tracker</title>
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet" />
+  <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/pdf-lib/dist/pdf-lib.min.js"></script>
+
+  <style>
+    .status-badge { transition: all 0.2s ease; }
+    .status-badge:hover { transform: scale(1.04); }
+    .form-card { transition: all 0.25s ease; }
+    .form-card:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 20px 25px -5px rgba(0,0,0,0.08), 0 10px 10px -5px rgba(0,0,0,0.04);
+    }
+  </style>
+</head>
+<body class="bg-gray-50 text-gray-900">
+
+  <!-- Nav -->
+  <nav class="bg-white shadow-sm border-b border-gray-100">
+    <div class="max-w-screen-2xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex justify-between items-center h-16">
+        <div class="flex items-center">
+          <i data-feather="file-text" class="text-blue-600 mr-2"></i>
+          <span class="text-xl font-semibold">W-8BEN Tracker</span>
+        </div>
+        <div class="flex items-center gap-2">
+          <button
+            id="addClientBtn"
+            class="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
+          >
+            <i data-feather="plus" class="w-4 h-4"></i>
+            Add Client
+          </button>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Main -->
+  <main class="max-w-screen-2xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div class="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-4 mb-6">
+      <div>
+        <h1 class="text-3xl font-bold">Client Forms Dashboard</h1>
+        <p class="text-gray-600 mt-1">Track W-8BEN forms, expiry dates, and generate PDFs.</p>
+      </div>
+
+      <div class="flex flex-col sm:flex-row gap-3">
+        <input
+          id="searchInput"
+          type="text"
+          placeholder="Search client..."
+          class="w-full sm:w-72 border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+        />
+        <select
+          id="statusFilter"
+          class="border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+        >
+          <option value="all">All statuses</option>
+          <option value="current">Current</option>
+          <option value="expiring">Expiring soon</option>
+          <option value="expired">Expired</option>
+          <option value="not_created">Not created</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- Summary cards -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 mb-6">
+      <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-5 form-card" data-aos="fade-up">
+        <p class="text-sm text-gray-500">Total Clients</p>
+        <p id="statTotal" class="text-3xl font-bold mt-1">0</p>
+      </div>
+      <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-5 form-card" data-aos="fade-up" data-aos-delay="50">
+        <p class="text-sm text-gray-500">Current</p>
+        <p id="statCurrent" class="text-3xl font-bold mt-1 text-green-600">0</p>
+      </div>
+      <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-5 form-card" data-aos="fade-up" data-aos-delay="100">
+        <p class="text-sm text-gray-500">Expiring Soon</p>
+        <p id="statExpiring" class="text-3xl font-bold mt-1 text-amber-600">0</p>
+      </div>
+      <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-5 form-card" data-aos="fade-up" data-aos-delay="150">
+        <p class="text-sm text-gray-500">Expired</p>
+        <p id="statExpired" class="text-3xl font-bold mt-1 text-red-600">0</p>
+      </div>
+    </div>
+
+    <!-- Table -->
+    <div class="bg-white shadow rounded-xl overflow-hidden border border-gray-100" data-aos="fade-up">
+      <div class="overflow-x-auto">
+        <table class="min-w-full divide-y divide-gray-200">
+          <thead class="bg-gray-50">
+            <tr>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Client</th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Reference</th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">W-8BEN</th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Signed</th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Expiry</th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+            </tr>
+          </thead>
+          <tbody id="clientTableBody" class="bg-white divide-y divide-gray-200"></tbody>
+        </table>
+      </div>
+      <div id="emptyState" class="hidden p-10 text-center text-gray-500">
+        <div class="flex justify-center mb-3">
+          <i data-feather="inbox" class="w-8 h-8"></i>
+        </div>
+        <p class="text-lg font-medium text-gray-700">No clients found</p>
+        <p class="text-sm mt-1">Add your first client to start tracking W-8BEN forms.</p>
+      </div>
+    </div>
+  </main>
+
+  <!-- Modal -->
+  <div
+    id="createFormModal"
+    class="fixed inset-0 bg-black/50 hidden items-center justify-center z-50 p-4"
+  >
+    <div class="bg-white rounded-2xl shadow-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+      <div class="flex justify-between items-center px-6 py-4 border-b border-gray-100">
+        <h3 id="modalTitle" class="text-xl font-semibold">Create W-8BEN</h3>
+        <button id="cfClose" type="button" class="text-gray-500 hover:text-gray-800 text-2xl leading-none">&times;</button>
+      </div>
+
+      <form id="createForm" class="p-6 space-y-4">
+        <input type="hidden" id="cfClientId" />
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label for="cfReference" class="block text-sm font-medium mb-1">Reference Number</label>
+            <input id="cfReference" class="border border-gray-300 rounded-lg w-full px-3 py-2" />
+          </div>
+
+          <div>
+            <label for="cfName" class="block text-sm font-medium mb-1">Name</label>
+            <input id="cfName" class="border border-gray-300 rounded-lg w-full px-3 py-2" required />
+          </div>
+        </div>
+
+        <div>
+          <label for="cfAddress" class="block text-sm font-medium mb-1">Full Address</label>
+          <input id="cfAddress" class="border border-gray-300 rounded-lg w-full px-3 py-2" placeholder="Street, Suburb, State, Postcode" />
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div>
+            <label for="cfCity" class="block text-sm font-medium mb-1">City</label>
+            <input id="cfCity" class="border border-gray-300 rounded-lg w-full px-3 py-2" />
+          </div>
+
+          <div>
+            <label for="cfCountry" class="block text-sm font-medium mb-1">Country</label>
+            <input id="cfCountry" class="border border-gray-300 rounded-lg w-full px-3 py-2" value="Australia" required />
+          </div>
+
+          <div>
+            <label for="cfDOB" class="block text-sm font-medium mb-1">Date of Birth</label>
+            <input id="cfDOB" type="date" class="border border-gray-300 rounded-lg w-full px-3 py-2" />
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label for="cfSignature" class="block text-sm font-medium mb-1">Signature / Printed Name</label>
+            <input id="cfSignature" class="border border-gray-300 rounded-lg w-full px-3 py-2" />
+          </div>
+
+          <div>
+            <label for="cfSigDate" class="block text-sm font-medium mb-1">Signature Date</label>
+            <input id="cfSigDate" type="date" class="border border-gray-300 rounded-lg w-full px-3 py-2" />
+          </div>
+        </div>
+
+        <div class="bg-blue-50 border border-blue-100 rounded-xl p-4 text-sm text-blue-900">
+          The PDF template file <strong>w8ben.pdf</strong> must be in the same folder as this HTML file.
+        </div>
+
+        <div class="flex flex-col sm:flex-row gap-3 pt-2">
+          <button
+            type="submit"
+            class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
+          >
+            Save & Download PDF
+          </button>
+          <button
+            type="button"
+            id="cancelBtn"
+            class="px-4 py-2 bg-gray-100 text-gray-800 rounded-lg hover:bg-gray-200 transition"
+          >
+            Cancel
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+<script>
+const W8BEN_URL = new URL('./w8ben.pdf', window.location.href).href;
+console.log('HTML page:', window.location.href);
+console.log('Resolved PDF URL:', W8BEN_URL);
+
+  const STORAGE_KEY = 'w8ben_clients_v1';
+
+  // ===== DOM =====
+  const cfModal = document.getElementById('createFormModal');
+  const cfClose = document.getElementById('cfClose');
+  const cancelBtn = document.getElementById('cancelBtn');
+  const modalTitle = document.getElementById('modalTitle');
+  const addClientBtn = document.getElementById('addClientBtn');
+  const createForm = document.getElementById('createForm');
+  const clientTableBody = document.getElementById('clientTableBody');
+  const emptyState = document.getElementById('emptyState');
+  const searchInput = document.getElementById('searchInput');
+  const statusFilter = document.getElementById('statusFilter');
+
+  const cfClientId = document.getElementById('cfClientId');
+  const cfReference = document.getElementById('cfReference');
+  const cfName = document.getElementById('cfName');
+  const cfAddress = document.getElementById('cfAddress');
+  const cfCity = document.getElementById('cfCity');
+  const cfCountry = document.getElementById('cfCountry');
+  const cfDOB = document.getElementById('cfDOB');
+  const cfSignature = document.getElementById('cfSignature');
+  const cfSigDate = document.getElementById('cfSigDate');
+
+  const statTotal = document.getElementById('statTotal');
+  const statCurrent = document.getElementById('statCurrent');
+  const statExpiring = document.getElementById('statExpiring');
+  const statExpired = document.getElementById('statExpired');
+
+  // ===== STATE =====
+  let clients = loadClients();
+
+  // ===== INIT =====
+  AOS.init({ duration: 500, once: true });
+  feather.replace();
+  render();
+
+  // ===== HELPERS =====
+  function loadClients() {
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      return raw ? JSON.parse(raw) : [];
+    } catch (err) {
+      console.error('Failed to load clients from storage:', err);
+      return [];
+    }
+  }
+
+  function saveClients() {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(clients));
+  }
+
+  function uid() {
+    return 'c_' + Math.random().toString(36).slice(2, 10) + Date.now().toString(36);
+  }
+
+  function formatDate(dateStr) {
+    if (!dateStr) return '—';
+    const d = new Date(dateStr + 'T00:00:00');
+    if (Number.isNaN(d.getTime())) return dateStr;
+    return d.toLocaleDateString('en-AU', {
+      day: '2-digit',
+      month: 'short',
+      year: 'numeric'
+    });
+  }
+
+  function calculateExpiry(sigDate) {
+    if (!sigDate) return '';
+    const signed = new Date(sigDate + 'T00:00:00');
+    if (Number.isNaN(signed.getTime())) return '';
+
+    // W-8BEN usually remains valid until the last day of the 3rd succeeding calendar year
+    // Example: signed 2026-03-27 -> expires 2029-12-31
+    const expiryYear = signed.getFullYear() + 3;
+    return `${expiryYear}-12-31`;
+  }
+
+  function daysBetween(today, futureDateStr) {
+    const future = new Date(futureDateStr + 'T00:00:00');
+    const diff = future - today;
+    return Math.ceil(diff / (1000 * 60 * 60 * 24));
+  }
+
+  function getStatus(client) {
+    if (!client.sigDate) {
+      return {
+        key: 'not_created',
+        text: 'Not created',
+        classes: 'bg-gray-100 text-gray-700'
+      };
+    }
+
+    const expiry = client.expiryDate || calculateExpiry(client.sigDate);
+    if (!expiry) {
+      return {
+        key: 'not_created',
+        text: 'Not created',
+        classes: 'bg-gray-100 text-gray-700'
+      };
+    }
+
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const days = daysBetween(today, expiry);
+
+    if (days < 0) {
+      return {
+        key: 'expired',
+        text: 'Expired',
+        classes: 'bg-red-100 text-red-700'
+      };
+    }
+
+    if (days <= 60) {
+      return {
+        key: 'expiring',
+        text: 'Expiring soon',
+        classes: 'bg-amber-100 text-amber-700'
+      };
+    }
+
+    return {
+      key: 'current',
+      text: 'Current',
+      classes: 'bg-green-100 text-green-700'
+    };
+  }
+
+  function escapeHtml(str = '') {
+    return String(str)
+      .replaceAll('&', '&amp;')
+      .replaceAll('<', '&lt;')
+      .replaceAll('>', '&gt;')
+      .replaceAll('"', '&quot;')
+      .replaceAll("'", '&#039;');
+  }
+
+  function closeModal() {
+    cfModal.classList.add('hidden');
+    cfModal.classList.remove('flex');
+    createForm.reset();
+    cfClientId.value = '';
+    cfCountry.value = 'Australia';
+    cfSigDate.value = new Date().toISOString().slice(0, 10);
+  }
+
+  function openCreateFormModal(client = null) {
+    if (client) {
+      modalTitle.textContent = 'Edit W-8BEN';
+      cfClientId.value = client.id || '';
+      cfReference.value = client.reference || '';
+      cfName.value = client.name || '';
+      cfAddress.value = client.address || '';
+      cfCity.value = client.city || '';
+      cfCountry.value = client.country || 'Australia';
+      cfDOB.value = client.dob || '';
+      cfSignature.value = client.signature || client.name || '';
+      cfSigDate.value = client.sigDate || new Date().toISOString().slice(0, 10);
+    } else {
+      modalTitle.textContent = 'Create W-8BEN';
+      createForm.reset();
+      cfClientId.value = '';
+      cfCountry.value = 'Australia';
+      cfSigDate.value = new Date().toISOString().slice(0, 10);
+    }
+
+    cfModal.classList.remove('hidden');
+    cfModal.classList.add('flex');
+  }
+
+  window.openCreateFormModal = openCreateFormModal;
+
+  function updateStats(filteredClients = clients) {
+    statTotal.textContent = filteredClients.length;
+    statCurrent.textContent = filteredClients.filter(c => getStatus(c).key === 'current').length;
+    statExpiring.textContent = filteredClients.filter(c => getStatus(c).key === 'expiring').length;
+    statExpired.textContent = filteredClients.filter(c => getStatus(c).key === 'expired').length;
+  }
+
+  function getFilteredClients() {
+    const q = searchInput.value.trim().toLowerCase();
+    const filter = statusFilter.value;
+
+    return clients.filter(client => {
+      const status = getStatus(client).key;
+      const matchesSearch =
+        !q ||
+        (client.name || '').toLowerCase().includes(q) ||
+        (client.reference || '').toLowerCase().includes(q) ||
+        (client.address || '').toLowerCase().includes(q) ||
+        (client.city || '').toLowerCase().includes(q);
+
+      const matchesStatus = filter === 'all' || status === filter;
+
+      return matchesSearch && matchesStatus;
+    });
+  }
+
+  function render() {
+    const filteredClients = getFilteredClients();
+    clientTableBody.innerHTML = '';
+
+    if (!filteredClients.length) {
+      emptyState.classList.remove('hidden');
+    } else {
+      emptyState.classList.add('hidden');
+    }
+
+    filteredClients
+      .sort((a, b) => (a.name || '').localeCompare(b.name || ''))
+      .forEach(client => {
+        const status = getStatus(client);
+
+        const row = document.createElement('tr');
+        row.className = 'hover:bg-gray-50';
+
+        row.innerHTML = `
+          <td class="px-6 py-4">
+            <div class="font-medium text-gray-900">${escapeHtml(client.name || '')}</div>
+            <div class="text-sm text-gray-500">${escapeHtml(client.city || client.country || '')}</div>
+          </td>
+          <td class="px-6 py-4 text-sm text-gray-700">
+            ${escapeHtml(client.reference || '—')}
+          </td>
+          <td class="px-6 py-4">
+            <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium status-badge ${status.classes}">
+              ${escapeHtml(status.text)}
+            </span>
+          </td>
+          <td class="px-6 py-4 text-sm text-gray-700">
+            ${formatDate(client.sigDate)}
+          </td>
+          <td class="px-6 py-4 text-sm text-gray-700">
+            ${formatDate(client.expiryDate)}
+          </td>
+          <td class="px-6 py-4">
+            <div class="flex flex-wrap gap-2">
+              <button
+                class="inline-flex items-center gap-1 px-3 py-1.5 text-sm bg-blue-50 text-blue-700 rounded-lg hover:bg-blue-100"
+                data-action="download"
+                data-id="${client.id}"
+              >
+                <i data-feather="download" class="w-4 h-4"></i>
+                PDF
+              </button>
+              <button
+                class="inline-flex items-center gap-1 px-3 py-1.5 text-sm bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200"
+                data-action="edit"
+                data-id="${client.id}"
+              >
+                <i data-feather="edit-2" class="w-4 h-4"></i>
+                Edit
+              </button>
+              <button
+                class="inline-flex items-center gap-1 px-3 py-1.5 text-sm bg-red-50 text-red-700 rounded-lg hover:bg-red-100"
+                data-action="delete"
+                data-id="${client.id}"
+              >
+                <i data-feather="trash-2" class="w-4 h-4"></i>
+                Delete
+              </button>
+            </div>
+          </td>
+        `;
+
+        clientTableBody.appendChild(row);
+      });
+
+    updateStats(filteredClients);
+    feather.replace();
+  }
+
+  function getClientById(id) {
+    return clients.find(c => c.id === id);
+  }
+
+  function upsertClient(payload) {
+    const existingIndex = clients.findIndex(c => c.id === payload.id);
+
+    if (existingIndex >= 0) {
+      clients[existingIndex] = payload;
+    } else {
+      clients.push(payload);
+    }
+
+    saveClients();
+    render();
+  }
+
+  function deleteClient(id) {
+    clients = clients.filter(c => c.id !== id);
+    saveClients();
+    render();
+  }
+
+  // ===== PDF FILLER =====
+ async function fillAndDownloadW8BENOfficial(data, templateUrl = W8BEN_URL) {
+  const { PDFDocument, PDFTextField } = PDFLib;
+
+  console.log('Trying to fetch PDF from:', templateUrl);
+
+  let resp;
+  try {
+    resp = await fetch(templateUrl, { cache: 'no-store' });
+  } catch (err) {
+    console.error('Fetch error:', err);
+    throw new Error(
+      `Fetch failed for ${templateUrl}. Check the browser console and open that exact URL directly in your browser.`
+    );
+  }
+
+  console.log('Fetch response status:', resp.status, resp.statusText);
+  console.log('Fetch response URL:', resp.url);
+
+  if (!resp.ok) {
+    throw new Error(`Cannot load template at ${templateUrl} (HTTP ${resp.status})`);
+  }
+
+  const pdfDoc = await PDFDocument.load(await resp.arrayBuffer());
+  const form = pdfDoc.getForm();
+  const fields = form.getFields().map(f => f.getName());
+
+  function setTextSafe(fieldName, value) {
+    if (!fields.includes(fieldName)) {
+      console.warn('Missing field:', fieldName);
+      return;
+    }
+    try {
+      const field = form.getField(fieldName);
+      if (field instanceof PDFTextField) {
+        field.setText(value ?? '');
+      }
+    } catch (e) {
+      console.warn('Could not set', fieldName, e);
+    }
+  }
+
+  const P = 'topmostSubform[0].Page1[0]';
+
+  setTextSafe(`${P}.f_12[0]`, data.reference || '');
+  setTextSafe(`${P}.f_1[0]`, data.name || '');
+  setTextSafe(`${P}.f_2[0]`, data.country || 'Australia');
+  setTextSafe(`${P}.f_3[0]`, data.address || '');
+  setTextSafe(`${P}.f_4[0]`, data.city || '');
+  setTextSafe(`${P}.f_7[0]`, data.country || 'Australia');
+  setTextSafe(`${P}.f_8[0]`, data.dob || '');
+  setTextSafe(`${P}.f_9[0]`, data.residentCountry || data.country || 'Australia');
+  setTextSafe(`${P}.f_21[0]`, data.printName || data.name || '');
+
+  [
+    `${P}.f_22[0]`,
+    `${P}.f_23[0]`,
+    `${P}.f_24[0]`
+  ].forEach(fieldName => setTextSafe(fieldName, data.sigDate || ''));
+
+  const pdfBytes = await pdfDoc.save();
+  const blob = new Blob([pdfBytes], { type: 'application/pdf' });
+  const url = URL.createObjectURL(blob);
+
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `${(data.name || 'client').replace(/[^\w\d\- ]+/g, '')}-W8BEN.pdf`;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+
+  URL.revokeObjectURL(url);
+
+  }
+
+  // ===== EVENTS =====
+  addClientBtn.addEventListener('click', () => openCreateFormModal());
+
+  cfClose.addEventListener('click', closeModal);
+  cancelBtn.addEventListener('click', closeModal);
+
+  cfModal.addEventListener('click', (e) => {
+    if (e.target === cfModal) closeModal();
+  });
+
+  searchInput.addEventListener('input', render);
+  statusFilter.addEventListener('change', render);
+
+  clientTableBody.addEventListener('click', async (e) => {
+    const button = e.target.closest('button[data-action]');
+    if (!button) return;
+
+    const id = button.dataset.id;
+    const action = button.dataset.action;
+    const client = getClientById(id);
+    if (!client) return;
+
+    if (action === 'edit') {
+      openCreateFormModal(client);
+      return;
+    }
+
+    if (action === 'delete') {
+      const ok = confirm(`Delete ${client.name || 'this client'}?`);
+      if (ok) deleteClient(id);
+      return;
+    }
+
+    if (action === 'download') {
+      try {
+        await fillAndDownloadW8BENOfficial({
+          reference: client.reference,
+          name: client.name,
+          address: client.address,
+          city: client.city,
+          country: client.country,
+          residentCountry: client.country,
+          dob: client.dob,
+          printName: client.signature || client.name,
+          sigDate: client.sigDate
+        });
+      } catch (err) {
+        alert('PDF generation failed: ' + err.message);
+      }
+    }
+  });
+
+  createForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+
+    const sigDate = cfSigDate.value || new Date().toISOString().slice(0, 10);
+    const expiryDate = calculateExpiry(sigDate);
+
+    const payload = {
+      id: cfClientId.value || uid(),
+      reference: cfReference.value.trim(),
+      name: cfName.value.trim(),
+      address: cfAddress.value.trim(),
+      city: cfCity.value.trim(),
+      country: cfCountry.value.trim() || 'Australia',
+      dob: cfDOB.value,
+      signature: cfSignature.value.trim() || cfName.value.trim(),
+      sigDate,
+      expiryDate,
+      updatedAt: new Date().toISOString()
+    };
+
+    try {
+      upsertClient(payload);
+
+      await fillAndDownloadW8BENOfficial({
+        reference: payload.reference,
+        name: payload.name,
+        address: payload.address,
+        city: payload.city,
+        country: payload.country,
+        residentCountry: payload.country,
+        dob: payload.dob,
+        printName: payload.signature,
+        sigDate: payload.sigDate
+      });
+
+      closeModal();
+    } catch (err) {
+      alert('Save/PDF generation failed: ' + err.message);
+    }
+  });
+</script>
+
+</body>
+</html>
