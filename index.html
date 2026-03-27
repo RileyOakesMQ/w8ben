@@ -23,7 +23,6 @@
 </head>
 <body class="bg-gray-50 text-gray-900">
 
-  <!-- Nav -->
   <nav class="bg-white shadow-sm border-b border-gray-100">
     <div class="max-w-screen-2xl mx-auto px-4 sm:px-6 lg:px-8">
       <div class="flex justify-between items-center h-16">
@@ -31,20 +30,17 @@
           <i data-feather="file-text" class="text-blue-600 mr-2"></i>
           <span class="text-xl font-semibold">W-8BEN Tracker</span>
         </div>
-        <div class="flex items-center gap-2">
-          <button
-            id="addClientBtn"
-            class="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
-          >
-            <i data-feather="plus" class="w-4 h-4"></i>
-            Add Client
-          </button>
-        </div>
+        <button
+          id="addClientBtn"
+          class="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
+        >
+          <i data-feather="plus" class="w-4 h-4"></i>
+          Add Client
+        </button>
       </div>
     </div>
   </nav>
 
-  <!-- Main -->
   <main class="max-w-screen-2xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
     <div class="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-4 mb-6">
       <div>
@@ -72,7 +68,6 @@
       </div>
     </div>
 
-    <!-- Summary cards -->
     <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 mb-6">
       <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-5 form-card" data-aos="fade-up">
         <p class="text-sm text-gray-500">Total Clients</p>
@@ -92,7 +87,6 @@
       </div>
     </div>
 
-    <!-- Table -->
     <div class="bg-white shadow rounded-xl overflow-hidden border border-gray-100" data-aos="fade-up">
       <div class="overflow-x-auto">
         <table class="min-w-full divide-y divide-gray-200">
@@ -119,12 +113,11 @@
     </div>
   </main>
 
-  <!-- Modal -->
   <div
     id="createFormModal"
     class="fixed inset-0 bg-black/50 hidden items-center justify-center z-50 p-4"
   >
-    <div class="bg-white rounded-2xl shadow-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+    <div class="bg-white rounded-2xl shadow-xl w-full max-w-3xl max-h-[90vh] overflow-y-auto">
       <div class="flex justify-between items-center px-6 py-4 border-b border-gray-100">
         <h3 id="modalTitle" class="text-xl font-semibold">Create W-8BEN</h3>
         <button id="cfClose" type="button" class="text-gray-500 hover:text-gray-800 text-2xl leading-none">&times;</button>
@@ -145,31 +138,76 @@
           </div>
         </div>
 
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label for="cfCitizenship" class="block text-sm font-medium mb-1">Country of Citizenship</label>
+            <input id="cfCitizenship" class="border border-gray-300 rounded-lg w-full px-3 py-2" value="Australia" required />
+          </div>
+
+          <div>
+            <label for="cfResidentCountry" class="block text-sm font-medium mb-1">Treaty Residence Country (Line 9)</label>
+            <input id="cfResidentCountry" class="border border-gray-300 rounded-lg w-full px-3 py-2" value="Australia" required />
+          </div>
+        </div>
+
         <div>
-          <label for="cfAddress" class="block text-sm font-medium mb-1">Full Address</label>
-          <input id="cfAddress" class="border border-gray-300 rounded-lg w-full px-3 py-2" placeholder="Street, Suburb, State, Postcode" />
+          <label for="cfAddress" class="block text-sm font-medium mb-1">Permanent Residence Address</label>
+          <input id="cfAddress" class="border border-gray-300 rounded-lg w-full px-3 py-2" placeholder="Street, apt, suite, rural route" />
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label for="cfCity" class="block text-sm font-medium mb-1">Permanent Residence City / State / Postcode</label>
+            <input id="cfCity" class="border border-gray-300 rounded-lg w-full px-3 py-2" placeholder="Sydney NSW 2000" />
+          </div>
+          <div>
+            <label for="cfCountry" class="block text-sm font-medium mb-1">Permanent Residence Country</label>
+            <input id="cfCountry" class="border border-gray-300 rounded-lg w-full px-3 py-2" value="Australia" required />
+          </div>
+        </div>
+
+        <div class="pt-2 border-t border-gray-100">
+          <h4 class="font-semibold text-gray-800 mb-3">Mailing Address (optional if different)</h4>
+          <div class="space-y-4">
+            <div>
+              <label for="cfMailAddress" class="block text-sm font-medium mb-1">Mailing Address</label>
+              <input id="cfMailAddress" class="border border-gray-300 rounded-lg w-full px-3 py-2" placeholder="Only fill if different from permanent address" />
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label for="cfMailCity" class="block text-sm font-medium mb-1">Mailing City / State / Postcode</label>
+                <input id="cfMailCity" class="border border-gray-300 rounded-lg w-full px-3 py-2" />
+              </div>
+              <div>
+                <label for="cfMailCountry" class="block text-sm font-medium mb-1">Mailing Country</label>
+                <input id="cfMailCountry" class="border border-gray-300 rounded-lg w-full px-3 py-2" />
+              </div>
+            </div>
+          </div>
         </div>
 
         <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div>
-            <label for="cfCity" class="block text-sm font-medium mb-1">City</label>
-            <input id="cfCity" class="border border-gray-300 rounded-lg w-full px-3 py-2" />
-          </div>
-
-          <div>
-            <label for="cfCountry" class="block text-sm font-medium mb-1">Country</label>
-            <input id="cfCountry" class="border border-gray-300 rounded-lg w-full px-3 py-2" value="Australia" required />
-          </div>
-
-          <div>
             <label for="cfDOB" class="block text-sm font-medium mb-1">Date of Birth</label>
             <input id="cfDOB" type="date" class="border border-gray-300 rounded-lg w-full px-3 py-2" />
+          </div>
+
+          <div>
+            <label for="cfFTIN" class="block text-sm font-medium mb-1">Foreign Tax Identifying Number</label>
+            <input id="cfFTIN" class="border border-gray-300 rounded-lg w-full px-3 py-2" />
+          </div>
+
+          <div class="flex items-end">
+            <label class="inline-flex items-center gap-2 text-sm font-medium">
+              <input id="cfNoFTIN" type="checkbox" class="rounded border-gray-300" />
+              FTIN not legally required
+            </label>
           </div>
         </div>
 
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
-            <label for="cfSignature" class="block text-sm font-medium mb-1">Signature / Printed Name</label>
+            <label for="cfSignature" class="block text-sm font-medium mb-1">Print Name of Signer</label>
             <input id="cfSignature" class="border border-gray-300 rounded-lg w-full px-3 py-2" />
           </div>
 
@@ -180,7 +218,7 @@
         </div>
 
         <div class="bg-blue-50 border border-blue-100 rounded-xl p-4 text-sm text-blue-900">
-          The PDF template file <strong>w8ben.pdf</strong> must be in the same folder as this HTML file.
+          Put <strong>w8ben.pdf</strong> in the same folder as this HTML file and open the page via a local web server, such as <strong>http://localhost:8000</strong>.
         </div>
 
         <div class="flex flex-col sm:flex-row gap-3 pt-2">
@@ -203,13 +241,9 @@
   </div>
 
 <script>
-const W8BEN_URL = new URL('./w8ben.pdf', window.location.href).href;
-console.log('HTML page:', window.location.href);
-console.log('Resolved PDF URL:', W8BEN_URL);
+  const W8BEN_URL = 'w8ben.pdf';
+  const STORAGE_KEY = 'w8ben_clients_v3';
 
-  const STORAGE_KEY = 'w8ben_clients_v1';
-
-  // ===== DOM =====
   const cfModal = document.getElementById('createFormModal');
   const cfClose = document.getElementById('cfClose');
   const cancelBtn = document.getElementById('cancelBtn');
@@ -224,10 +258,17 @@ console.log('Resolved PDF URL:', W8BEN_URL);
   const cfClientId = document.getElementById('cfClientId');
   const cfReference = document.getElementById('cfReference');
   const cfName = document.getElementById('cfName');
+  const cfCitizenship = document.getElementById('cfCitizenship');
+  const cfResidentCountry = document.getElementById('cfResidentCountry');
   const cfAddress = document.getElementById('cfAddress');
   const cfCity = document.getElementById('cfCity');
   const cfCountry = document.getElementById('cfCountry');
+  const cfMailAddress = document.getElementById('cfMailAddress');
+  const cfMailCity = document.getElementById('cfMailCity');
+  const cfMailCountry = document.getElementById('cfMailCountry');
   const cfDOB = document.getElementById('cfDOB');
+  const cfFTIN = document.getElementById('cfFTIN');
+  const cfNoFTIN = document.getElementById('cfNoFTIN');
   const cfSignature = document.getElementById('cfSignature');
   const cfSigDate = document.getElementById('cfSigDate');
 
@@ -236,15 +277,12 @@ console.log('Resolved PDF URL:', W8BEN_URL);
   const statExpiring = document.getElementById('statExpiring');
   const statExpired = document.getElementById('statExpired');
 
-  // ===== STATE =====
   let clients = loadClients();
 
-  // ===== INIT =====
   AOS.init({ duration: 500, once: true });
   feather.replace();
   render();
 
-  // ===== HELPERS =====
   function loadClients() {
     try {
       const raw = localStorage.getItem(STORAGE_KEY);
@@ -263,7 +301,7 @@ console.log('Resolved PDF URL:', W8BEN_URL);
     return 'c_' + Math.random().toString(36).slice(2, 10) + Date.now().toString(36);
   }
 
-  function formatDate(dateStr) {
+  function formatDateDisplay(dateStr) {
     if (!dateStr) return '—';
     const d = new Date(dateStr + 'T00:00:00');
     if (Number.isNaN(d.getTime())) return dateStr;
@@ -274,13 +312,18 @@ console.log('Resolved PDF URL:', W8BEN_URL);
     });
   }
 
+  function formatDateMMDDYYYY(dateStr) {
+    if (!dateStr) return '';
+    const parts = dateStr.split('-');
+    if (parts.length !== 3) return dateStr;
+    const [year, month, day] = parts;
+    return `${month}-${day}-${year}`;
+  }
+
   function calculateExpiry(sigDate) {
     if (!sigDate) return '';
     const signed = new Date(sigDate + 'T00:00:00');
     if (Number.isNaN(signed.getTime())) return '';
-
-    // W-8BEN usually remains valid until the last day of the 3rd succeeding calendar year
-    // Example: signed 2026-03-27 -> expires 2029-12-31
     const expiryYear = signed.getFullYear() + 3;
     return `${expiryYear}-12-31`;
   }
@@ -293,20 +336,12 @@ console.log('Resolved PDF URL:', W8BEN_URL);
 
   function getStatus(client) {
     if (!client.sigDate) {
-      return {
-        key: 'not_created',
-        text: 'Not created',
-        classes: 'bg-gray-100 text-gray-700'
-      };
+      return { key: 'not_created', text: 'Not created', classes: 'bg-gray-100 text-gray-700' };
     }
 
     const expiry = client.expiryDate || calculateExpiry(client.sigDate);
     if (!expiry) {
-      return {
-        key: 'not_created',
-        text: 'Not created',
-        classes: 'bg-gray-100 text-gray-700'
-      };
+      return { key: 'not_created', text: 'Not created', classes: 'bg-gray-100 text-gray-700' };
     }
 
     const today = new Date();
@@ -315,26 +350,14 @@ console.log('Resolved PDF URL:', W8BEN_URL);
     const days = daysBetween(today, expiry);
 
     if (days < 0) {
-      return {
-        key: 'expired',
-        text: 'Expired',
-        classes: 'bg-red-100 text-red-700'
-      };
+      return { key: 'expired', text: 'Expired', classes: 'bg-red-100 text-red-700' };
     }
 
     if (days <= 60) {
-      return {
-        key: 'expiring',
-        text: 'Expiring soon',
-        classes: 'bg-amber-100 text-amber-700'
-      };
+      return { key: 'expiring', text: 'Expiring soon', classes: 'bg-amber-100 text-amber-700' };
     }
 
-    return {
-      key: 'current',
-      text: 'Current',
-      classes: 'bg-green-100 text-green-700'
-    };
+    return { key: 'current', text: 'Current', classes: 'bg-green-100 text-green-700' };
   }
 
   function escapeHtml(str = '') {
@@ -351,6 +374,8 @@ console.log('Resolved PDF URL:', W8BEN_URL);
     cfModal.classList.remove('flex');
     createForm.reset();
     cfClientId.value = '';
+    cfCitizenship.value = 'Australia';
+    cfResidentCountry.value = 'Australia';
     cfCountry.value = 'Australia';
     cfSigDate.value = new Date().toISOString().slice(0, 10);
   }
@@ -361,16 +386,25 @@ console.log('Resolved PDF URL:', W8BEN_URL);
       cfClientId.value = client.id || '';
       cfReference.value = client.reference || '';
       cfName.value = client.name || '';
+      cfCitizenship.value = client.citizenship || 'Australia';
+      cfResidentCountry.value = client.residentCountry || 'Australia';
       cfAddress.value = client.address || '';
       cfCity.value = client.city || '';
       cfCountry.value = client.country || 'Australia';
+      cfMailAddress.value = client.mailAddress || '';
+      cfMailCity.value = client.mailCity || '';
+      cfMailCountry.value = client.mailCountry || '';
       cfDOB.value = client.dob || '';
+      cfFTIN.value = client.ftin || '';
+      cfNoFTIN.checked = !!client.noFtin;
       cfSignature.value = client.signature || client.name || '';
       cfSigDate.value = client.sigDate || new Date().toISOString().slice(0, 10);
     } else {
       modalTitle.textContent = 'Create W-8BEN';
       createForm.reset();
       cfClientId.value = '';
+      cfCitizenship.value = 'Australia';
+      cfResidentCountry.value = 'Australia';
       cfCountry.value = 'Australia';
       cfSigDate.value = new Date().toISOString().slice(0, 10);
     }
@@ -378,8 +412,6 @@ console.log('Resolved PDF URL:', W8BEN_URL);
     cfModal.classList.remove('hidden');
     cfModal.classList.add('flex');
   }
-
-  window.openCreateFormModal = openCreateFormModal;
 
   function updateStats(filteredClients = clients) {
     statTotal.textContent = filteredClients.length;
@@ -402,7 +434,6 @@ console.log('Resolved PDF URL:', W8BEN_URL);
         (client.city || '').toLowerCase().includes(q);
 
       const matchesStatus = filter === 'all' || status === filter;
-
       return matchesSearch && matchesStatus;
     });
   }
@@ -430,20 +461,14 @@ console.log('Resolved PDF URL:', W8BEN_URL);
             <div class="font-medium text-gray-900">${escapeHtml(client.name || '')}</div>
             <div class="text-sm text-gray-500">${escapeHtml(client.city || client.country || '')}</div>
           </td>
-          <td class="px-6 py-4 text-sm text-gray-700">
-            ${escapeHtml(client.reference || '—')}
-          </td>
+          <td class="px-6 py-4 text-sm text-gray-700">${escapeHtml(client.reference || '—')}</td>
           <td class="px-6 py-4">
             <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium status-badge ${status.classes}">
               ${escapeHtml(status.text)}
             </span>
           </td>
-          <td class="px-6 py-4 text-sm text-gray-700">
-            ${formatDate(client.sigDate)}
-          </td>
-          <td class="px-6 py-4 text-sm text-gray-700">
-            ${formatDate(client.expiryDate)}
-          </td>
+          <td class="px-6 py-4 text-sm text-gray-700">${formatDateDisplay(client.sigDate)}</td>
+          <td class="px-6 py-4 text-sm text-gray-700">${formatDateDisplay(client.expiryDate)}</td>
           <td class="px-6 py-4">
             <div class="flex flex-wrap gap-2">
               <button
@@ -487,13 +512,11 @@ console.log('Resolved PDF URL:', W8BEN_URL);
 
   function upsertClient(payload) {
     const existingIndex = clients.findIndex(c => c.id === payload.id);
-
     if (existingIndex >= 0) {
       clients[existingIndex] = payload;
     } else {
       clients.push(payload);
     }
-
     saveClients();
     render();
   }
@@ -504,84 +527,86 @@ console.log('Resolved PDF URL:', W8BEN_URL);
     render();
   }
 
-  // ===== PDF FILLER =====
- async function fillAndDownloadW8BENOfficial(data, templateUrl = W8BEN_URL) {
-  const { PDFDocument, PDFTextField } = PDFLib;
+  async function fillAndDownloadW8BENOfficial(data, templateUrl = W8BEN_URL) {
+    const { PDFDocument, PDFTextField, PDFCheckBox } = PDFLib;
 
-  console.log('Trying to fetch PDF from:', templateUrl);
-
-  let resp;
-  try {
-    resp = await fetch(templateUrl, { cache: 'no-store' });
-  } catch (err) {
-    console.error('Fetch error:', err);
-    throw new Error(
-      `Fetch failed for ${templateUrl}. Check the browser console and open that exact URL directly in your browser.`
-    );
-  }
-
-  console.log('Fetch response status:', resp.status, resp.statusText);
-  console.log('Fetch response URL:', resp.url);
-
-  if (!resp.ok) {
-    throw new Error(`Cannot load template at ${templateUrl} (HTTP ${resp.status})`);
-  }
-
-  const pdfDoc = await PDFDocument.load(await resp.arrayBuffer());
-  const form = pdfDoc.getForm();
-  const fields = form.getFields().map(f => f.getName());
-
-  function setTextSafe(fieldName, value) {
-    if (!fields.includes(fieldName)) {
-      console.warn('Missing field:', fieldName);
-      return;
-    }
+    let resp;
     try {
-      const field = form.getField(fieldName);
-      if (field instanceof PDFTextField) {
-        field.setText(value ?? '');
-      }
-    } catch (e) {
-      console.warn('Could not set', fieldName, e);
+      resp = await fetch(templateUrl);
+    } catch (err) {
+      throw new Error('Could not load w8ben.pdf. Open the page through a local web server like http://localhost:8000, not file:///');
     }
+
+    if (!resp.ok) {
+      throw new Error(`Cannot load template at ${templateUrl} (HTTP ${resp.status})`);
+    }
+
+    const pdfDoc = await PDFDocument.load(await resp.arrayBuffer());
+    const form = pdfDoc.getForm();
+    const fields = form.getFields().map(f => f.getName());
+
+    function setTextSafe(fieldName, value) {
+      if (!fields.includes(fieldName)) return;
+      try {
+        const field = form.getField(fieldName);
+        if (field instanceof PDFTextField) {
+          field.setText(value ?? '');
+        }
+      } catch (e) {
+        console.warn('Could not set', fieldName, e);
+      }
+    }
+
+    function setCheckSafe(fieldName, checked) {
+      if (!fields.includes(fieldName)) return;
+      try {
+        const field = form.getField(fieldName);
+        if (field instanceof PDFCheckBox) {
+          if (checked) field.check();
+          else field.uncheck();
+        }
+      } catch (e) {
+        console.warn('Could not set checkbox', fieldName, e);
+      }
+    }
+
+    const P = 'topmostSubform[0].Page1[0]';
+
+    // Exact mapping from uploaded PDF
+    setTextSafe(`${P}.f_1[0]`, data.name || '');                               // Line 1 Name
+    setTextSafe(`${P}.f_2[0]`, data.citizenship || 'Australia');               // Line 2 Citizenship
+    setTextSafe(`${P}.f_3[0]`, data.address || '');                            // Line 3 Permanent address
+    setTextSafe(`${P}.f_4[0]`, data.city || '');                               // Line 3 City/state/postcode
+    setTextSafe(`${P}.f_5[0]`, data.country || 'Australia');                   // Line 3 Country
+    setTextSafe(`${P}.f_6[0]`, data.mailAddress || '');                        // Line 4 Mailing address
+    setTextSafe(`${P}.f_7[0]`, data.mailCity || '');                           // Line 4 City/state/postcode
+    setTextSafe(`${P}.f_8[0]`, data.mailCountry || '');                        // Line 4 Country
+    setTextSafe(`${P}.f_10[0]`, data.ftin || '');                              // Line 6a FTIN
+    setCheckSafe(`${P}.c1_01[0]`, !!data.noFtin);                              // Line 6b FTIN not legally required
+    setTextSafe(`${P}.f_11[0]`, data.reference || '');                         // Line 7 Reference number
+    setTextSafe(`${P}.f_12[0]`, formatDateMMDDYYYY(data.dob) || '');           // Line 8 DOB
+    setTextSafe(`${P}.f_13[0]`, data.residentCountry || 'Australia');          // Line 9 Treaty country
+    setCheckSafe(`${P}.c1_02[0]`, true);                                       // Certification checkbox
+    setTextSafe(`${P}.Date[0]`, formatDateMMDDYYYY(data.sigDate) || '');       // Signature date
+    setTextSafe(`${P}.f_21[0]`, data.printName || data.name || '');            // Print name of signer
+
+    // f_20[0] is a real signature field, not a text field. Left blank intentionally.
+
+    const pdfBytes = await pdfDoc.save();
+    const blob = new Blob([pdfBytes], { type: 'application/pdf' });
+    const url = URL.createObjectURL(blob);
+
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${(data.name || 'client').replace(/[^\w\d\- ]+/g, '')}-W8BEN.pdf`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+
+    URL.revokeObjectURL(url);
   }
 
-  const P = 'topmostSubform[0].Page1[0]';
-
-  setTextSafe(`${P}.f_12[0]`, data.reference || '');
-  setTextSafe(`${P}.f_1[0]`, data.name || '');
-  setTextSafe(`${P}.f_2[0]`, data.country || 'Australia');
-  setTextSafe(`${P}.f_3[0]`, data.address || '');
-  setTextSafe(`${P}.f_4[0]`, data.city || '');
-  setTextSafe(`${P}.f_7[0]`, data.country || 'Australia');
-  setTextSafe(`${P}.f_8[0]`, data.dob || '');
-  setTextSafe(`${P}.f_9[0]`, data.residentCountry || data.country || 'Australia');
-  setTextSafe(`${P}.f_21[0]`, data.printName || data.name || '');
-
-  [
-    `${P}.f_22[0]`,
-    `${P}.f_23[0]`,
-    `${P}.f_24[0]`
-  ].forEach(fieldName => setTextSafe(fieldName, data.sigDate || ''));
-
-  const pdfBytes = await pdfDoc.save();
-  const blob = new Blob([pdfBytes], { type: 'application/pdf' });
-  const url = URL.createObjectURL(blob);
-
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = `${(data.name || 'client').replace(/[^\w\d\- ]+/g, '')}-W8BEN.pdf`;
-  document.body.appendChild(a);
-  a.click();
-  a.remove();
-
-  URL.revokeObjectURL(url);
-
-  }
-
-  // ===== EVENTS =====
   addClientBtn.addEventListener('click', () => openCreateFormModal());
-
   cfClose.addEventListener('click', closeModal);
   cancelBtn.addEventListener('click', closeModal);
 
@@ -617,11 +642,17 @@ console.log('Resolved PDF URL:', W8BEN_URL);
         await fillAndDownloadW8BENOfficial({
           reference: client.reference,
           name: client.name,
+          citizenship: client.citizenship,
+          residentCountry: client.residentCountry,
           address: client.address,
           city: client.city,
           country: client.country,
-          residentCountry: client.country,
+          mailAddress: client.mailAddress,
+          mailCity: client.mailCity,
+          mailCountry: client.mailCountry,
           dob: client.dob,
+          ftin: client.ftin,
+          noFtin: client.noFtin,
           printName: client.signature || client.name,
           sigDate: client.sigDate
         });
@@ -641,10 +672,17 @@ console.log('Resolved PDF URL:', W8BEN_URL);
       id: cfClientId.value || uid(),
       reference: cfReference.value.trim(),
       name: cfName.value.trim(),
+      citizenship: cfCitizenship.value.trim() || 'Australia',
+      residentCountry: cfResidentCountry.value.trim() || 'Australia',
       address: cfAddress.value.trim(),
       city: cfCity.value.trim(),
       country: cfCountry.value.trim() || 'Australia',
+      mailAddress: cfMailAddress.value.trim(),
+      mailCity: cfMailCity.value.trim(),
+      mailCountry: cfMailCountry.value.trim(),
       dob: cfDOB.value,
+      ftin: cfFTIN.value.trim(),
+      noFtin: cfNoFTIN.checked,
       signature: cfSignature.value.trim() || cfName.value.trim(),
       sigDate,
       expiryDate,
@@ -657,18 +695,24 @@ console.log('Resolved PDF URL:', W8BEN_URL);
       await fillAndDownloadW8BENOfficial({
         reference: payload.reference,
         name: payload.name,
+        citizenship: payload.citizenship,
+        residentCountry: payload.residentCountry,
         address: payload.address,
         city: payload.city,
         country: payload.country,
-        residentCountry: payload.country,
+        mailAddress: payload.mailAddress,
+        mailCity: payload.mailCity,
+        mailCountry: payload.mailCountry,
         dob: payload.dob,
+        ftin: payload.ftin,
+        noFtin: payload.noFtin,
         printName: payload.signature,
         sigDate: payload.sigDate
       });
 
       closeModal();
     } catch (err) {
-      alert('Save/PDF generation failed: ' + err.message);
+      alert('PDF generation failed: ' + err.message);
     }
   });
 </script>
