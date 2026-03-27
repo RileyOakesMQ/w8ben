@@ -30,13 +30,23 @@
           <i data-feather="file-text" class="text-blue-600 mr-2"></i>
           <span class="text-xl font-semibold">W-8BEN / W-8BEN-E Tracker</span>
         </div>
-        <button
-          id="addClientBtn"
-          class="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
-        >
-          <i data-feather="plus" class="w-4 h-4"></i>
-          Add Record
-        </button>
+        <div class="flex items-center gap-2">
+  <button
+    id="bulkImportBtn"
+    class="inline-flex items-center gap-2 px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition"
+  >
+    <i data-feather="upload" class="w-4 h-4"></i>
+    Create Bulk
+  </button>
+
+  <button
+    id="addClientBtn"
+    class="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
+  >
+    <i data-feather="plus" class="w-4 h-4"></i>
+    Add Record
+  </button>
+</div>
       </div>
     </div>
   </nav>
@@ -363,11 +373,90 @@
       </form>
     </div>
   </div>
+  <div id="bulkImportModal" class="fixed inset-0 bg-black/50 hidden items-center justify-center z-50 p-4">
+    <div class="bg-white rounded-2xl shadow-xl w-full max-w-5xl max-h-[90vh] overflow-y-auto">
+      <div class="flex justify-between items-center px-6 py-4 border-b border-gray-100 sticky top-0 bg-white z-10">
+        <h3 class="text-xl font-semibold">Bulk Import</h3>
+        <button id="bulkImportClose" type="button" class="text-gray-500 hover:text-gray-800 text-2xl leading-none">&times;</button>
+      </div>
+
+      <div class="p-6 space-y-4">
+        <div class="rounded-xl bg-blue-50 border border-blue-100 p-4 text-sm text-blue-900">
+          Paste rows directly from Excel. The importer expects tab-separated columns with headers like:
+          <strong>Account Number</strong>, <strong>Name of Beneficial Owner</strong>, <strong>Permanent Residence Address Line 1</strong>,
+          <strong>Suburb and State</strong>, <strong>Post Code</strong>, <strong>Resident Country</strong>,
+          <strong>Mailing Address Address Line 1</strong>, <strong>Mailing Address Suburb and State</strong>,
+          <strong>Mailing Address Postcode</strong>, <strong>Mailing Address Resident Country</strong>,
+          <strong>Tax Residency Country</strong>, <strong>Form Name</strong>, <strong>Form Status</strong>, <strong>Expiry Date</strong>.
+        </div>
+
+        <textarea
+          id="bulkImportTextarea"
+          rows="14"
+          class="w-full border border-gray-300 rounded-xl px-4 py-3 font-mono text-sm"
+          placeholder="Paste Excel rows here..."
+        ></textarea>
+
+        <div class="flex flex-col sm:flex-row gap-3">
+          <button
+            id="bulkImportParseBtn"
+            type="button"
+            class="px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition"
+          >
+            Parse Bulk Rows
+          </button>
+          <button
+            id="bulkImportCancelBtn"
+            type="button"
+            class="px-4 py-2 bg-gray-100 text-gray-800 rounded-lg hover:bg-gray-200 transition"
+          >
+            Cancel
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="bulkDobModal" class="fixed inset-0 bg-black/50 hidden items-center justify-center z-50 p-4">
+    <div class="bg-white rounded-2xl shadow-xl w-full max-w-4xl max-h-[90vh] overflow-y-auto">
+      <div class="flex justify-between items-center px-6 py-4 border-b border-gray-100 sticky top-0 bg-white z-10">
+        <h3 class="text-xl font-semibold">Enter DOBs for W-8BEN Records</h3>
+        <button id="bulkDobClose" type="button" class="text-gray-500 hover:text-gray-800 text-2xl leading-none">&times;</button>
+      </div>
+
+      <div class="p-6 space-y-4">
+        <div class="rounded-xl bg-amber-50 border border-amber-100 p-4 text-sm text-amber-900">
+          Date of birth is required for non-entity W-8BEN records. Fill the DOBs below, then continue import.
+        </div>
+
+        <div id="bulkDobContainer" class="space-y-4"></div>
+
+        <div class="flex flex-col sm:flex-row gap-3">
+          <button
+            id="bulkDobSaveBtn"
+            type="button"
+            class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
+          >
+            Save Bulk Import
+          </button>
+          <button
+            id="bulkDobCancelBtn"
+            type="button"
+            class="px-4 py-2 bg-gray-100 text-gray-800 rounded-lg hover:bg-gray-200 transition"
+          >
+            Cancel
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+
 
 <script>
   const W8BEN_URL = 'w8ben.pdf';
   const W8BENE_URL = 'W-8BEN-E form - Template.pdf';
-  const STORAGE_KEY = 'w8_forms_v5';
+  const STORAGE_KEY = 'w8_forms_v6';
 
   const DEFAULT_LOB_TEXT = 'Article 16(2)(g) ownership/base erosion test';
 
@@ -379,8 +468,7 @@
       chapter4Label: 'Nonreporting IGA FFI',
       treatyDefault: true,
       treatyCountry: 'Australia',
-      lobText: DEFAULT_LOB_TEXT,
-      followUpType: 'smsf_nonreporting_iga'
+      lobText: DEFAULT_LOB_TEXT
     },
     trust: {
       chapter3Index: 4,
@@ -389,8 +477,7 @@
       chapter4Label: 'Active NFFE',
       treatyDefault: true,
       treatyCountry: 'Australia',
-      lobText: DEFAULT_LOB_TEXT,
-      followUpType: 'nffe'
+      lobText: DEFAULT_LOB_TEXT
     },
     company: {
       chapter3Index: 0,
@@ -399,8 +486,7 @@
       chapter4Label: 'Active NFFE',
       treatyDefault: true,
       treatyCountry: 'Australia',
-      lobText: DEFAULT_LOB_TEXT,
-      followUpType: 'nffe'
+      lobText: DEFAULT_LOB_TEXT
     }
   };
 
@@ -428,6 +514,19 @@
   const emptyState = document.getElementById('emptyState');
   const searchInput = document.getElementById('searchInput');
   const statusFilter = document.getElementById('statusFilter');
+
+  const bulkImportBtn = document.getElementById('bulkImportBtn');
+  const bulkImportModal = document.getElementById('bulkImportModal');
+  const bulkImportClose = document.getElementById('bulkImportClose');
+  const bulkImportCancelBtn = document.getElementById('bulkImportCancelBtn');
+  const bulkImportParseBtn = document.getElementById('bulkImportParseBtn');
+  const bulkImportTextarea = document.getElementById('bulkImportTextarea');
+
+  const bulkDobModal = document.getElementById('bulkDobModal');
+  const bulkDobClose = document.getElementById('bulkDobClose');
+  const bulkDobCancelBtn = document.getElementById('bulkDobCancelBtn');
+  const bulkDobSaveBtn = document.getElementById('bulkDobSaveBtn');
+  const bulkDobContainer = document.getElementById('bulkDobContainer');
 
   const cfClientId = document.getElementById('cfClientId');
   const cfFormType = document.getElementById('cfFormType');
@@ -479,6 +578,7 @@
   const statExpired = document.getElementById('statExpired');
 
   let clients = loadClients();
+  let pendingBulkRecords = [];
 
   AOS.init({ duration: 500, once: true });
   feather.replace();
@@ -523,6 +623,15 @@
     return `${month}-${day}-${year}`;
   }
 
+  function parseDDMMYYYYtoISO(dateStr) {
+    if (!dateStr) return '';
+    const cleaned = String(dateStr).trim();
+    const m = cleaned.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+    if (!m) return '';
+    const [, dd, mm, yyyy] = m;
+    return `${yyyy}-${String(mm).padStart(2, '0')}-${String(dd).padStart(2, '0')}`;
+  }
+
   function calculateExpiry(sigDate) {
     if (!sigDate) return '';
     const signed = new Date(sigDate + 'T00:00:00');
@@ -537,18 +646,19 @@
   }
 
   function getStatus(record) {
-    if (!record.sigDate) {
+    const expiry = record.expiryDate || '';
+    if (!expiry && !record.sigDate) {
       return { key: 'not_created', text: 'Not created', classes: 'bg-gray-100 text-gray-700' };
     }
 
-    const expiry = record.expiryDate || calculateExpiry(record.sigDate);
-    if (!expiry) {
+    const effectiveExpiry = expiry || calculateExpiry(record.sigDate);
+    if (!effectiveExpiry) {
       return { key: 'not_created', text: 'Not created', classes: 'bg-gray-100 text-gray-700' };
     }
 
     const today = new Date();
     today.setHours(0, 0, 0, 0);
-    const days = daysBetween(today, expiry);
+    const days = daysBetween(today, effectiveExpiry);
 
     if (days < 0) return { key: 'expired', text: 'Expired', classes: 'bg-red-100 text-red-700' };
     if (days <= 60) return { key: 'expiring', text: 'Expiring soon', classes: 'bg-amber-100 text-amber-700' };
@@ -566,6 +676,15 @@
 
   function safeFilename(name) {
     return String(name || 'file').replace(/[^\w\d\- ]+/g, '');
+  }
+
+  function normaliseKey(key) {
+    return String(key || '')
+      .replace(/\r/g, ' ')
+      .replace(/\n/g, ' ')
+      .replace(/\s+/g, ' ')
+      .trim()
+      .toLowerCase();
   }
 
   function toggleFormSections() {
@@ -605,6 +724,13 @@
     efTreatyCountry.value = defaults.treatyCountry;
     efLOBText.value = defaults.lobText;
     toggleTreatyFields();
+  }
+
+  function inferEntityType(name) {
+    const n = String(name || '').toLowerCase();
+    if (n.includes('superfund') || n.includes('super fund') || n.includes('smsf')) return 'smsf';
+    if (n.includes('trustee') || n.includes('trust')) return 'trust';
+    return 'company';
   }
 
   function resetDefaults() {
@@ -691,6 +817,64 @@
     cfModal.classList.add('flex');
   }
 
+  function openBulkImportModal() {
+    bulkImportTextarea.value = '';
+    bulkImportModal.classList.remove('hidden');
+    bulkImportModal.classList.add('flex');
+  }
+
+  function closeBulkImportModal() {
+    bulkImportModal.classList.add('hidden');
+    bulkImportModal.classList.remove('flex');
+  }
+
+  function openBulkDobModal(records) {
+    pendingBulkRecords = records.slice();
+    bulkDobContainer.innerHTML = '';
+
+    pendingBulkRecords
+      .filter(r => r.formType === 'W-8BEN')
+      .forEach((record, index) => {
+        const card = document.createElement('div');
+        card.className = 'rounded-xl border border-gray-200 p-4';
+
+        card.innerHTML = `
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
+            <div>
+              <div class="text-xs text-gray-500">Account Number</div>
+              <div class="font-medium">${escapeHtml(record.accountNumber || '—')}</div>
+            </div>
+            <div>
+              <div class="text-xs text-gray-500">Name</div>
+              <div class="font-medium">${escapeHtml(record.name || '—')}</div>
+            </div>
+            <div>
+              <label class="block text-sm font-medium mb-1">Date of Birth</label>
+              <input
+                type="date"
+                class="bulk-dob-input border border-gray-300 rounded-lg w-full px-3 py-2"
+                data-index="${index}"
+                value="${escapeHtml(record.dob || '')}"
+                required
+              />
+            </div>
+          </div>
+        `;
+
+        bulkDobContainer.appendChild(card);
+      });
+
+    bulkDobModal.classList.remove('hidden');
+    bulkDobModal.classList.add('flex');
+  }
+
+  function closeBulkDobModal() {
+    bulkDobModal.classList.add('hidden');
+    bulkDobModal.classList.remove('flex');
+    bulkDobContainer.innerHTML = '';
+    pendingBulkRecords = [];
+  }
+
   function updateStats(filtered = clients) {
     statTotal.textContent = filtered.length;
     statCurrent.textContent = filtered.filter(c => getStatus(c).key === 'current').length;
@@ -713,6 +897,7 @@
       const haystack = [
         getDisplayName(record),
         record.reference || '',
+        record.accountNumber || '',
         record.address || '',
         record.permanentAddress || '',
         record.city || '',
@@ -745,7 +930,7 @@
             <div class="text-sm text-gray-500">${escapeHtml(record.formType === 'W-8BEN-E' ? (record.permanentCity || record.permanentCountry || '') : (record.city || record.country || ''))}</div>
           </td>
           <td class="px-6 py-4 text-sm text-gray-700">${escapeHtml(record.formType || '')}</td>
-          <td class="px-6 py-4 text-sm text-gray-700">${escapeHtml(record.reference || '—')}</td>
+          <td class="px-6 py-4 text-sm text-gray-700">${escapeHtml(record.reference || record.accountNumber || '—')}</td>
           <td class="px-6 py-4">
             <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium status-badge ${status.classes}">
               ${escapeHtml(status.text)}
@@ -767,6 +952,7 @@
             </div>
           </td>
         `;
+
         clientTableBody.appendChild(row);
       });
 
@@ -782,6 +968,16 @@
     const idx = clients.findIndex(c => c.id === payload.id);
     if (idx >= 0) clients[idx] = payload;
     else clients.push(payload);
+    saveClients();
+    render();
+  }
+
+  function upsertMany(records) {
+    records.forEach(payload => {
+      const idx = clients.findIndex(c => c.id === payload.id);
+      if (idx >= 0) clients[idx] = payload;
+      else clients.push(payload);
+    });
     saveClients();
     render();
   }
@@ -877,11 +1073,11 @@
     }
 
     if (record.chapter4Value === 'passive_nffe') {
-      if (page7Checks[1]) setCheckSafe(form, fields, page7Checks[1], true, PDFCheckBox); // 40a
+      if (page7Checks[1]) setCheckSafe(form, fields, page7Checks[1], true, PDFCheckBox);
       if (record.hasNoUSOwners) {
-        if (page7Checks[2]) setCheckSafe(form, fields, page7Checks[2], true, PDFCheckBox); // 40b
+        if (page7Checks[2]) setCheckSafe(form, fields, page7Checks[2], true, PDFCheckBox);
       } else {
-        if (page7Checks[3]) setCheckSafe(form, fields, page7Checks[3], true, PDFCheckBox); // 40c
+        if (page7Checks[3]) setCheckSafe(form, fields, page7Checks[3], true, PDFCheckBox);
       }
     }
   }
@@ -903,7 +1099,7 @@
     setTextSafe(form, fields, `${P}.f_8[0]`, record.mailCountry || '', PDFTextField);
     setTextSafe(form, fields, `${P}.f_10[0]`, record.ftin || '', PDFTextField);
     setCheckSafe(form, fields, `${P}.c1_01[0]`, !!record.noFtin, PDFCheckBox);
-    setTextSafe(form, fields, `${P}.f_11[0]`, record.reference || '', PDFTextField);
+    setTextSafe(form, fields, `${P}.f_11[0]`, record.reference || record.accountNumber || '', PDFTextField);
     setTextSafe(form, fields, `${P}.f_12[0]`, formatDateMMDDYYYY(record.dob) || '', PDFTextField);
     setTextSafe(form, fields, `${P}.f_13[0]`, record.country || 'Australia', PDFTextField);
     setCheckSafe(form, fields, `${P}.c1_02[0]`, true, PDFCheckBox);
@@ -947,22 +1143,21 @@
     setTextSafe(form, fields, `${P2}.f2_2[0]`, record.giin || '', PDFTextField);
     setTextSafe(form, fields, `${P2}.f2_3[0]`, record.entityFtin || '', PDFTextField);
     setCheckSafe(form, fields, `${P2}.c2_1[0]`, !!record.entityNoFtin, PDFCheckBox);
-    setTextSafe(form, fields, `${P2}.f2_4[0]`, record.reference || '', PDFTextField);
+    setTextSafe(form, fields, `${P2}.f2_4[0]`, record.reference || record.accountNumber || '', PDFTextField);
 
-   if (record.claimTreaty) {
-  setCheckSafe(form, fields, `${P2}.c2_3[0]`, true, PDFCheckBox);
-  setTextSafe(form, fields, `${P2}.f2_9[0]`, record.treatyCountry || 'Australia', PDFTextField);
-  setCheckSafe(form, fields, `${P2}.c2_4[0]`, true, PDFCheckBox);
-  setCheckSafe(form, fields, `${P2}.c2_5[5]`, true, PDFCheckBox);
-  setTextSafe(form, fields, `${P2}.f2_10[0]`, record.lobText || DEFAULT_LOB_TEXT, PDFTextField);
-}
+    if (record.claimTreaty) {
+      setCheckSafe(form, fields, `${P2}.c2_3[0]`, true, PDFCheckBox);
+      setTextSafe(form, fields, `${P2}.f2_9[0]`, record.treatyCountry || 'Australia', PDFTextField);
+      setCheckSafe(form, fields, `${P2}.c2_4[0]`, true, PDFCheckBox);
+      setCheckSafe(form, fields, `${P2}.c2_5[5]`, true, PDFCheckBox);
+      setTextSafe(form, fields, `${P2}.f2_10[0]`, record.lobText || DEFAULT_LOB_TEXT, PDFTextField);
+    }
 
-applyBeneFollowUp(form, fields, record, PDFCheckBox, PDFTextField);
+    applyBeneFollowUp(form, fields, record, PDFCheckBox, PDFTextField);
 
-// Final certification page
-setCheckSafe(form, fields, `${P8}.c8_3[0]`, true, PDFCheckBox);
-setTextSafe(form, fields, `${P8}.f8_31[0]`, record.entityPrintName || record.orgName || '', PDFTextField);
-setTextSafe(form, fields, `${P8}.f8_32[0]`, formatDateMMDDYYYY(record.sigDate) || '', PDFTextField);
+    setCheckSafe(form, fields, `${P8}.c8_3[0]`, true, PDFCheckBox);
+    setTextSafe(form, fields, `${P8}.f8_31[0]`, record.entityPrintName || record.orgName || '', PDFTextField);
+    setTextSafe(form, fields, `${P8}.f8_32[0]`, formatDateMMDDYYYY(record.sigDate) || '', PDFTextField);
 
     const pdfBytes = await pdfDoc.save();
     downloadBlob(pdfBytes, `${safeFilename(record.orgName || 'entity')}-W8BENE.pdf`);
@@ -974,8 +1169,8 @@ setTextSafe(form, fields, `${P8}.f8_32[0]`, formatDateMMDDYYYY(record.sigDate) |
   }
 
   function buildPayload() {
-    const sigDate = cfSigDate.value || new Date().toISOString().slice(0, 10);
-    const expiryDate = calculateExpiry(sigDate);
+    const sigDate = cfSigDate.value || '';
+    const expiryDate = sigDate ? calculateExpiry(sigDate) : '';
     const formType = cfFormType.value;
 
     const payload = {
@@ -1034,15 +1229,196 @@ setTextSafe(form, fields, `${P8}.f8_32[0]`, formatDateMMDDYYYY(record.sigDate) |
     return payload;
   }
 
+  function parseExcelBulkRows(raw) {
+    const lines = String(raw || '')
+      .replace(/\r\n/g, '\n')
+      .replace(/\r/g, '\n')
+      .split('\n')
+      .map(l => l.trimEnd())
+      .filter(l => l.trim() !== '');
+
+    if (lines.length < 2) {
+      throw new Error('Paste at least a header row and one data row.');
+    }
+
+    const rows = lines.map(line => line.split('\t'));
+    const headers = rows[0].map(normaliseKey);
+    const dataRows = rows.slice(1);
+
+    const headerIndex = (names) => {
+      const normalisedNames = names.map(normaliseKey);
+      for (let i = 0; i < headers.length; i++) {
+        if (normalisedNames.includes(headers[i])) return i;
+      }
+      return -1;
+    };
+
+    const getCell = (row, names) => {
+      const idx = headerIndex(Array.isArray(names) ? names : [names]);
+      return idx >= 0 ? String(row[idx] || '').trim() : '';
+    };
+
+    return dataRows.map(row => {
+      const accountNumber = getCell(row, ['account number']);
+      const ownerName = getCell(row, ['name of beneficial owner']);
+      const formName = getCell(row, ['form name']);
+      const expiryDateRaw = getCell(row, ['expiry date']);
+      const permanentLine1 = getCell(row, ['permanent residence address line 1']);
+      const permanentLine2 = getCell(row, ['permanent residence address line 2']);
+      const suburbState = getCell(row, ['suburb and state']);
+      const postCode = getCell(row, ['post code']);
+      const residentCountry = getCell(row, ['resident country']);
+      const mailingLine1 = getCell(row, ['mailing address address line 1']);
+      const mailingLine2 = getCell(row, ['mailing address address line 2']);
+      const mailingSuburbState = getCell(row, ['mailing address suburb and state']);
+      const mailingPostcode = getCell(row, ['mailing address postcode']);
+      const mailingResidentCountry = getCell(row, ['mailing address resident country']);
+      const taxResidencyCountry = getCell(row, ['tax residency country']);
+      const formStatus = getCell(row, ['form status']);
+
+      const permanentAddress = [permanentLine1, permanentLine2].filter(Boolean).join(', ');
+      const permanentCity = [suburbState, postCode].filter(Boolean).join(' ');
+      const mailingAddress = [mailingLine1, mailingLine2].filter(Boolean).join(', ');
+      const mailingCity = [mailingSuburbState, mailingPostcode].filter(Boolean).join(' ');
+      const expiryIso = parseDDMMYYYYtoISO(expiryDateRaw);
+      const isEntity = String(formName).toUpperCase().includes('W-8BEN-E');
+
+      if (isEntity) {
+        const entityType = inferEntityType(ownerName);
+        const beneDefaults = BENE_DEFAULTS[entityType];
+        return {
+          id: uid(),
+          accountNumber,
+          reference: accountNumber,
+          formType: 'W-8BEN-E',
+          entityType,
+          orgName: ownerName,
+          countryOfIncorp: residentCountry || 'Australia',
+          permanentAddress,
+          permanentCity,
+          permanentCountry: residentCountry || 'Australia',
+          entityMailAddress: mailingAddress,
+          entityMailCity: mailingCity,
+          entityMailCountry: mailingResidentCountry || '',
+          entityFtin: '',
+          entityNoFtin: true,
+          hasNoUSOwners: true,
+          entityPrintName: ownerName,
+          usTin: '',
+          giin: '',
+          disregardedName: '',
+          claimTreaty: true,
+          treatyCountry: taxResidencyCountry || 'Australia',
+          lobText: DEFAULT_LOB_TEXT,
+          chapter3Index: beneDefaults.chapter3Index,
+          chapter3Label: beneDefaults.chapter3Label,
+          chapter4Value: beneDefaults.chapter4Value,
+          chapter4Label: beneDefaults.chapter4Label,
+          sigDate: '',
+          expiryDate: expiryIso,
+          importedFormStatus: formStatus,
+          updatedAt: new Date().toISOString()
+        };
+      }
+
+      return {
+        id: uid(),
+        accountNumber,
+        reference: accountNumber,
+        formType: 'W-8BEN',
+        name: ownerName,
+        citizenship: taxResidencyCountry || 'Australia',
+        address: permanentAddress,
+        city: permanentCity,
+        country: residentCountry || 'Australia',
+        mailAddress: mailingAddress,
+        mailCity: mailingCity,
+        mailCountry: mailingResidentCountry || '',
+        dob: '',
+        ftin: '',
+        noFtin: true,
+        signature: ownerName,
+        sigDate: '',
+        expiryDate: expiryIso,
+        importedFormStatus: formStatus,
+        updatedAt: new Date().toISOString()
+      };
+    });
+  }
+
+  function commitBulkImport(records) {
+    upsertMany(records);
+    closeBulkDobModal();
+    closeBulkImportModal();
+    alert(`${records.length} records imported.`);
+  }
+
   addClientBtn.addEventListener('click', () => openCreateFormModal());
+  bulkImportBtn.addEventListener('click', openBulkImportModal);
+
   cfClose.addEventListener('click', closeModal);
   cancelBtn.addEventListener('click', closeModal);
+
+  bulkImportClose.addEventListener('click', closeBulkImportModal);
+  bulkImportCancelBtn.addEventListener('click', closeBulkImportModal);
+
+  bulkDobClose.addEventListener('click', closeBulkDobModal);
+  bulkDobCancelBtn.addEventListener('click', closeBulkDobModal);
+
   cfFormType.addEventListener('change', toggleFormSections);
   efEntityType.addEventListener('change', applyBeneDefaults);
   efClaimTreaty.addEventListener('change', toggleTreatyFields);
 
   cfModal.addEventListener('click', (e) => {
     if (e.target === cfModal) closeModal();
+  });
+
+  bulkImportModal.addEventListener('click', (e) => {
+    if (e.target === bulkImportModal) closeBulkImportModal();
+  });
+
+  bulkDobModal.addEventListener('click', (e) => {
+    if (e.target === bulkDobModal) closeBulkDobModal();
+  });
+
+  bulkImportParseBtn.addEventListener('click', () => {
+    try {
+      const parsed = parseExcelBulkRows(bulkImportTextarea.value);
+      const needsDob = parsed.filter(r => r.formType === 'W-8BEN');
+
+      if (!parsed.length) {
+        throw new Error('No valid rows found.');
+      }
+
+      if (needsDob.length) {
+        openBulkDobModal(parsed);
+      } else {
+        commitBulkImport(parsed);
+      }
+    } catch (err) {
+      alert('Bulk parse failed: ' + err.message);
+    }
+  });
+
+  bulkDobSaveBtn.addEventListener('click', () => {
+    const dobInputs = bulkDobContainer.querySelectorAll('.bulk-dob-input');
+
+    for (const input of dobInputs) {
+      if (!input.value) {
+        alert('Please enter all DOBs before saving the bulk import.');
+        input.focus();
+        return;
+      }
+    }
+
+    dobInputs.forEach(input => {
+      const index = Number(input.dataset.index);
+      if (pendingBulkRecords[index]) {
+        pendingBulkRecords[index].dob = input.value;
+      }
+    });
+
+    commitBulkImport(pendingBulkRecords);
   });
 
   searchInput.addEventListener('input', render);
@@ -1091,6 +1467,5 @@ setTextSafe(form, fields, `${P8}.f8_32[0]`, formatDateMMDDYYYY(record.sigDate) |
     }
   });
 </script>
-
 </body>
 </html>
