@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>W-8BEN Form Tracker</title>
+  <title>W-8BEN / W-8BEN-E Tracker</title>
 
   <script src="https://cdn.tailwindcss.com"></script>
   <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet" />
@@ -28,14 +28,14 @@
       <div class="flex justify-between items-center h-16">
         <div class="flex items-center">
           <i data-feather="file-text" class="text-blue-600 mr-2"></i>
-          <span class="text-xl font-semibold">W-8BEN Tracker</span>
+          <span class="text-xl font-semibold">W-8BEN / W-8BEN-E Tracker</span>
         </div>
         <button
           id="addClientBtn"
           class="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
         >
           <i data-feather="plus" class="w-4 h-4"></i>
-          Add Client
+          Add Record
         </button>
       </div>
     </div>
@@ -44,15 +44,15 @@
   <main class="max-w-screen-2xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
     <div class="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-4 mb-6">
       <div>
-        <h1 class="text-3xl font-bold">Client Forms Dashboard</h1>
-        <p class="text-gray-600 mt-1">Track W-8BEN forms, expiry dates, and generate PDFs.</p>
+        <h1 class="text-3xl font-bold">Forms Dashboard</h1>
+        <p class="text-gray-600 mt-1">Track W-8BEN and W-8BEN-E forms, expiry dates, and generate PDFs.</p>
       </div>
 
       <div class="flex flex-col sm:flex-row gap-3">
         <input
           id="searchInput"
           type="text"
-          placeholder="Search client..."
+          placeholder="Search..."
           class="w-full sm:w-72 border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
         />
         <select
@@ -70,7 +70,7 @@
 
     <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 mb-6">
       <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-5 form-card" data-aos="fade-up">
-        <p class="text-sm text-gray-500">Total Clients</p>
+        <p class="text-sm text-gray-500">Total Records</p>
         <p id="statTotal" class="text-3xl font-bold mt-1">0</p>
       </div>
       <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-5 form-card" data-aos="fade-up" data-aos-delay="50">
@@ -92,9 +92,10 @@
         <table class="min-w-full divide-y divide-gray-200">
           <thead class="bg-gray-50">
             <tr>
-              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Client</th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Type</th>
               <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Reference</th>
-              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">W-8BEN</th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
               <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Signed</th>
               <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Expiry</th>
               <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
@@ -107,132 +108,255 @@
         <div class="flex justify-center mb-3">
           <i data-feather="inbox" class="w-8 h-8"></i>
         </div>
-        <p class="text-lg font-medium text-gray-700">No clients found</p>
-        <p class="text-sm mt-1">Add your first client to start tracking W-8BEN forms.</p>
+        <p class="text-lg font-medium text-gray-700">No records found</p>
+        <p class="text-sm mt-1">Add your first form record to start tracking.</p>
       </div>
     </div>
   </main>
 
-  <div
-    id="createFormModal"
-    class="fixed inset-0 bg-black/50 hidden items-center justify-center z-50 p-4"
-  >
-    <div class="bg-white rounded-2xl shadow-xl w-full max-w-3xl max-h-[90vh] overflow-y-auto">
-      <div class="flex justify-between items-center px-6 py-4 border-b border-gray-100">
-        <h3 id="modalTitle" class="text-xl font-semibold">Create W-8BEN</h3>
+  <div id="createFormModal" class="fixed inset-0 bg-black/50 hidden items-center justify-center z-50 p-4">
+    <div class="bg-white rounded-2xl shadow-xl w-full max-w-4xl max-h-[90vh] overflow-y-auto">
+      <div class="flex justify-between items-center px-6 py-4 border-b border-gray-100 sticky top-0 bg-white z-10">
+        <h3 id="modalTitle" class="text-xl font-semibold">Create Form Record</h3>
         <button id="cfClose" type="button" class="text-gray-500 hover:text-gray-800 text-2xl leading-none">&times;</button>
       </div>
 
-      <form id="createForm" class="p-6 space-y-4">
+      <form id="createForm" class="p-6 space-y-6">
         <input type="hidden" id="cfClientId" />
 
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div>
+            <label for="cfFormType" class="block text-sm font-medium mb-1">Form Type</label>
+            <select id="cfFormType" class="border border-gray-300 rounded-lg w-full px-3 py-2">
+              <option value="W-8BEN">W-8BEN</option>
+              <option value="W-8BEN-E">W-8BEN-E</option>
+            </select>
+          </div>
           <div>
             <label for="cfReference" class="block text-sm font-medium mb-1">Reference Number</label>
             <input id="cfReference" class="border border-gray-300 rounded-lg w-full px-3 py-2" />
           </div>
-
-          <div>
-            <label for="cfName" class="block text-sm font-medium mb-1">Name</label>
-            <input id="cfName" class="border border-gray-300 rounded-lg w-full px-3 py-2" required />
-          </div>
-        </div>
-
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div>
-            <label for="cfCitizenship" class="block text-sm font-medium mb-1">Country of Citizenship</label>
-            <input id="cfCitizenship" class="border border-gray-300 rounded-lg w-full px-3 py-2" value="Australia" required />
-          </div>
-
-          <div>
-            <label for="cfResidentCountry" class="block text-sm font-medium mb-1">Treaty Residence Country (Line 9)</label>
-            <input id="cfResidentCountry" class="border border-gray-300 rounded-lg w-full px-3 py-2" value="Australia" required />
-          </div>
-        </div>
-
-        <div>
-          <label for="cfAddress" class="block text-sm font-medium mb-1">Permanent Residence Address</label>
-          <input id="cfAddress" class="border border-gray-300 rounded-lg w-full px-3 py-2" placeholder="Street, apt, suite, rural route" />
-        </div>
-
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div>
-            <label for="cfCity" class="block text-sm font-medium mb-1">Permanent Residence City / State / Postcode</label>
-            <input id="cfCity" class="border border-gray-300 rounded-lg w-full px-3 py-2" placeholder="Sydney NSW 2000" />
-          </div>
-          <div>
-            <label for="cfCountry" class="block text-sm font-medium mb-1">Permanent Residence Country</label>
-            <input id="cfCountry" class="border border-gray-300 rounded-lg w-full px-3 py-2" value="Australia" required />
-          </div>
-        </div>
-
-        <div class="pt-2 border-t border-gray-100">
-          <h4 class="font-semibold text-gray-800 mb-3">Mailing Address (optional if different)</h4>
-          <div class="space-y-4">
-            <div>
-              <label for="cfMailAddress" class="block text-sm font-medium mb-1">Mailing Address</label>
-              <input id="cfMailAddress" class="border border-gray-300 rounded-lg w-full px-3 py-2" placeholder="Only fill if different from permanent address" />
-            </div>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label for="cfMailCity" class="block text-sm font-medium mb-1">Mailing City / State / Postcode</label>
-                <input id="cfMailCity" class="border border-gray-300 rounded-lg w-full px-3 py-2" />
-              </div>
-              <div>
-                <label for="cfMailCountry" class="block text-sm font-medium mb-1">Mailing Country</label>
-                <input id="cfMailCountry" class="border border-gray-300 rounded-lg w-full px-3 py-2" />
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div>
-            <label for="cfDOB" class="block text-sm font-medium mb-1">Date of Birth</label>
-            <input id="cfDOB" type="date" class="border border-gray-300 rounded-lg w-full px-3 py-2" />
-          </div>
-
-          <div>
-            <label for="cfFTIN" class="block text-sm font-medium mb-1">Foreign Tax Identifying Number</label>
-            <input id="cfFTIN" class="border border-gray-300 rounded-lg w-full px-3 py-2" />
-          </div>
-
-          <div class="flex items-end">
-            <label class="inline-flex items-center gap-2 text-sm font-medium">
-              <input id="cfNoFTIN" type="checkbox" class="rounded border-gray-300" />
-              FTIN not legally required
-            </label>
-          </div>
-        </div>
-
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div>
-            <label for="cfSignature" class="block text-sm font-medium mb-1">Print Name of Signer</label>
-            <input id="cfSignature" class="border border-gray-300 rounded-lg w-full px-3 py-2" />
-          </div>
-
           <div>
             <label for="cfSigDate" class="block text-sm font-medium mb-1">Signature Date</label>
             <input id="cfSigDate" type="date" class="border border-gray-300 rounded-lg w-full px-3 py-2" />
           </div>
         </div>
 
+        <!-- W-8BEN -->
+        <section id="w8benSection" class="space-y-4">
+          <h4 class="font-semibold text-gray-800 border-b border-gray-100 pb-2">W-8BEN (Individual)</h4>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label for="cfName" class="block text-sm font-medium mb-1">Name</label>
+              <input id="cfName" class="border border-gray-300 rounded-lg w-full px-3 py-2" />
+            </div>
+            <div>
+              <label for="cfCitizenship" class="block text-sm font-medium mb-1">Country of Citizenship</label>
+              <input id="cfCitizenship" class="border border-gray-300 rounded-lg w-full px-3 py-2" value="Australia" />
+            </div>
+          </div>
+
+          <div>
+            <label for="cfAddress" class="block text-sm font-medium mb-1">Permanent Residence Address</label>
+            <input id="cfAddress" class="border border-gray-300 rounded-lg w-full px-3 py-2" />
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label for="cfCity" class="block text-sm font-medium mb-1">City / State / Postcode</label>
+              <input id="cfCity" class="border border-gray-300 rounded-lg w-full px-3 py-2" />
+            </div>
+            <div>
+              <label for="cfCountry" class="block text-sm font-medium mb-1">Country</label>
+              <input id="cfCountry" class="border border-gray-300 rounded-lg w-full px-3 py-2" value="Australia" />
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div>
+              <label for="cfDOB" class="block text-sm font-medium mb-1">Date of Birth</label>
+              <input id="cfDOB" type="date" class="border border-gray-300 rounded-lg w-full px-3 py-2" />
+            </div>
+            <div>
+              <label for="cfFTIN" class="block text-sm font-medium mb-1">Foreign Tax Identifying Number</label>
+              <input id="cfFTIN" class="border border-gray-300 rounded-lg w-full px-3 py-2" />
+            </div>
+            <div class="flex items-end">
+              <label class="inline-flex items-center gap-2 text-sm font-medium">
+                <input id="cfNoFTIN" type="checkbox" class="rounded border-gray-300" checked />
+                FTIN not legally required
+              </label>
+            </div>
+          </div>
+
+          <details class="rounded-xl border border-gray-200 p-4">
+            <summary class="cursor-pointer font-medium text-gray-800">Optional W-8BEN fields</summary>
+            <div class="mt-4 space-y-4">
+              <div>
+                <label for="cfMailAddress" class="block text-sm font-medium mb-1">Mailing Address</label>
+                <input id="cfMailAddress" class="border border-gray-300 rounded-lg w-full px-3 py-2" />
+              </div>
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label for="cfMailCity" class="block text-sm font-medium mb-1">Mailing City / State / Postcode</label>
+                  <input id="cfMailCity" class="border border-gray-300 rounded-lg w-full px-3 py-2" />
+                </div>
+                <div>
+                  <label for="cfMailCountry" class="block text-sm font-medium mb-1">Mailing Country</label>
+                  <input id="cfMailCountry" class="border border-gray-300 rounded-lg w-full px-3 py-2" />
+                </div>
+              </div>
+            </div>
+          </details>
+
+          <div>
+            <label for="cfSignature" class="block text-sm font-medium mb-1">Print Name of Signer</label>
+            <input id="cfSignature" class="border border-gray-300 rounded-lg w-full px-3 py-2" />
+          </div>
+        </section>
+
+        <!-- W-8BEN-E -->
+        <section id="w8beneSection" class="space-y-4 hidden">
+          <h4 class="font-semibold text-gray-800 border-b border-gray-100 pb-2">W-8BEN-E (Entity)</h4>
+
+          <div class="rounded-xl bg-blue-50 border border-blue-100 p-4 text-sm text-blue-900">
+            This simplified BEN-E UI asks only for the core fields normally expected for Australian SMSF, trust and company accounts, and prefills the common classifications. Optional items are under the toggle below.
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label for="efEntityType" class="block text-sm font-medium mb-1">Entity Type</label>
+              <select id="efEntityType" class="border border-gray-300 rounded-lg w-full px-3 py-2">
+                <option value="smsf">SMSF</option>
+                <option value="trust">Trust</option>
+                <option value="company">Company</option>
+              </select>
+            </div>
+            <div>
+              <label for="efOrgName" class="block text-sm font-medium mb-1">Entity Name</label>
+              <input id="efOrgName" class="border border-gray-300 rounded-lg w-full px-3 py-2" />
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div>
+              <label for="efCountryOfIncorp" class="block text-sm font-medium mb-1">Country of Organisation</label>
+              <input id="efCountryOfIncorp" class="border border-gray-300 rounded-lg w-full px-3 py-2" value="Australia" />
+            </div>
+            <div>
+              <label for="efChapter3StatusDisplay" class="block text-sm font-medium mb-1">Chapter 3 Status</label>
+              <input id="efChapter3StatusDisplay" class="border border-gray-300 rounded-lg w-full px-3 py-2 bg-gray-50" readonly />
+            </div>
+            <div>
+              <label for="efChapter4StatusDisplay" class="block text-sm font-medium mb-1">Chapter 4 FATCA Status</label>
+              <select id="efChapter4StatusDisplay" class="border border-gray-300 rounded-lg w-full px-3 py-2"></select>
+            </div>
+          </div>
+
+          <div>
+            <label for="efPermanentAddress" class="block text-sm font-medium mb-1">Registered / Permanent Address</label>
+            <input id="efPermanentAddress" class="border border-gray-300 rounded-lg w-full px-3 py-2" />
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label for="efPermanentCity" class="block text-sm font-medium mb-1">City / State / Postcode</label>
+              <input id="efPermanentCity" class="border border-gray-300 rounded-lg w-full px-3 py-2" />
+            </div>
+            <div>
+              <label for="efPermanentCountry" class="block text-sm font-medium mb-1">Country</label>
+              <input id="efPermanentCountry" class="border border-gray-300 rounded-lg w-full px-3 py-2" value="Australia" />
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div>
+              <label for="efForeignTIN" class="block text-sm font-medium mb-1">ABN / TFN / Foreign TIN</label>
+              <input id="efForeignTIN" class="border border-gray-300 rounded-lg w-full px-3 py-2" />
+            </div>
+            <div class="flex items-end">
+              <label class="inline-flex items-center gap-2 text-sm font-medium">
+                <input id="efNoFTIN" type="checkbox" class="rounded border-gray-300" checked />
+                FTIN not legally required
+              </label>
+            </div>
+            <div class="flex items-end">
+              <label class="inline-flex items-center gap-2 text-sm font-medium">
+                <input id="efHasNoUSOwners" type="checkbox" class="rounded border-gray-300" checked />
+                No substantial U.S. owners
+              </label>
+            </div>
+          </div>
+
+          <div>
+            <label for="efPrintName" class="block text-sm font-medium mb-1">Print Name of Authorised Signer</label>
+            <input id="efPrintName" class="border border-gray-300 rounded-lg w-full px-3 py-2" />
+          </div>
+
+          <details class="rounded-xl border border-gray-200 p-4">
+            <summary class="cursor-pointer font-medium text-gray-800">Optional W-8BEN-E fields</summary>
+            <div class="mt-4 space-y-4">
+              <div>
+                <label for="efMailAddress" class="block text-sm font-medium mb-1">Mailing Address</label>
+                <input id="efMailAddress" class="border border-gray-300 rounded-lg w-full px-3 py-2" />
+              </div>
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label for="efMailCity" class="block text-sm font-medium mb-1">Mailing City / State / Postcode</label>
+                  <input id="efMailCity" class="border border-gray-300 rounded-lg w-full px-3 py-2" />
+                </div>
+                <div>
+                  <label for="efMailCountry" class="block text-sm font-medium mb-1">Mailing Country</label>
+                  <input id="efMailCountry" class="border border-gray-300 rounded-lg w-full px-3 py-2" />
+                </div>
+              </div>
+
+              <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div>
+                  <label for="efUSTIN" class="block text-sm font-medium mb-1">U.S. TIN</label>
+                  <input id="efUSTIN" class="border border-gray-300 rounded-lg w-full px-3 py-2" />
+                </div>
+                <div>
+                  <label for="efGIIN" class="block text-sm font-medium mb-1">GIIN</label>
+                  <input id="efGIIN" class="border border-gray-300 rounded-lg w-full px-3 py-2" />
+                </div>
+                <div>
+                  <label for="efDisregardedName" class="block text-sm font-medium mb-1">Disregarded Entity Name</label>
+                  <input id="efDisregardedName" class="border border-gray-300 rounded-lg w-full px-3 py-2" />
+                </div>
+              </div>
+
+              <div class="rounded-xl bg-gray-50 border border-gray-200 p-4 space-y-4">
+                <label class="inline-flex items-center gap-2 text-sm font-medium">
+                  <input id="efClaimTreaty" type="checkbox" class="rounded border-gray-300" />
+                  Claim treaty benefits
+                </label>
+
+                <div id="efTreatyFields" class="hidden grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label for="efTreatyCountry" class="block text-sm font-medium mb-1">Treaty Country</label>
+                    <input id="efTreatyCountry" class="border border-gray-300 rounded-lg w-full px-3 py-2" value="Australia" />
+                  </div>
+                  <div>
+                    <label for="efLOBText" class="block text-sm font-medium mb-1">LOB / Special Conditions</label>
+                    <input id="efLOBText" class="border border-gray-300 rounded-lg w-full px-3 py-2" value="Article 16(2)(g) ownership/base erosion test" />
+                  </div>
+                </div>
+              </div>
+            </div>
+          </details>
+        </section>
+
         <div class="bg-blue-50 border border-blue-100 rounded-xl p-4 text-sm text-blue-900">
-          Put <strong>w8ben.pdf</strong> in the same folder as this HTML file and open the page via a local web server, such as <strong>http://localhost:8000</strong>.
+          Put <strong>w8ben.pdf</strong> and <strong>W-8BEN-E form - Template.pdf</strong> in the same folder as this HTML file, then open it through a local web server such as <strong>http://localhost:8000</strong>.
         </div>
 
         <div class="flex flex-col sm:flex-row gap-3 pt-2">
-          <button
-            type="submit"
-            class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
-          >
+          <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition">
             Save & Download PDF
           </button>
-          <button
-            type="button"
-            id="cancelBtn"
-            class="px-4 py-2 bg-gray-100 text-gray-800 rounded-lg hover:bg-gray-200 transition"
-          >
+          <button type="button" id="cancelBtn" class="px-4 py-2 bg-gray-100 text-gray-800 rounded-lg hover:bg-gray-200 transition">
             Cancel
           </button>
         </div>
@@ -242,7 +366,57 @@
 
 <script>
   const W8BEN_URL = 'w8ben.pdf';
-  const STORAGE_KEY = 'w8ben_clients_v3';
+  const W8BENE_URL = 'W-8BEN-E form - Template.pdf';
+  const STORAGE_KEY = 'w8_forms_v5';
+
+  const DEFAULT_LOB_TEXT = 'Article 16(2)(g) ownership/base erosion test';
+
+  const BENE_DEFAULTS = {
+    smsf: {
+      chapter3Index: 4,
+      chapter3Label: 'Complex trust',
+      chapter4Value: 'nonreporting_iga_ffi',
+      chapter4Label: 'Nonreporting IGA FFI',
+      treatyDefault: true,
+      treatyCountry: 'Australia',
+      lobText: DEFAULT_LOB_TEXT,
+      followUpType: 'smsf_nonreporting_iga'
+    },
+    trust: {
+      chapter3Index: 4,
+      chapter3Label: 'Complex trust',
+      chapter4Value: 'active_nffe',
+      chapter4Label: 'Active NFFE',
+      treatyDefault: true,
+      treatyCountry: 'Australia',
+      lobText: DEFAULT_LOB_TEXT,
+      followUpType: 'nffe'
+    },
+    company: {
+      chapter3Index: 0,
+      chapter3Label: 'Corporation',
+      chapter4Value: 'active_nffe',
+      chapter4Label: 'Active NFFE',
+      treatyDefault: true,
+      treatyCountry: 'Australia',
+      lobText: DEFAULT_LOB_TEXT,
+      followUpType: 'nffe'
+    }
+  };
+
+  const CHAPTER4_OPTIONS = {
+    smsf: [
+      { value: 'nonreporting_iga_ffi', label: 'Nonreporting IGA FFI', mapping: 'col2:0' }
+    ],
+    trust: [
+      { value: 'active_nffe', label: 'Active NFFE', mapping: 'col2:13' },
+      { value: 'passive_nffe', label: 'Passive NFFE', mapping: 'col2:14' }
+    ],
+    company: [
+      { value: 'active_nffe', label: 'Active NFFE', mapping: 'col2:13' },
+      { value: 'passive_nffe', label: 'Passive NFFE', mapping: 'col2:14' }
+    ]
+  };
 
   const cfModal = document.getElementById('createFormModal');
   const cfClose = document.getElementById('cfClose');
@@ -256,10 +430,12 @@
   const statusFilter = document.getElementById('statusFilter');
 
   const cfClientId = document.getElementById('cfClientId');
+  const cfFormType = document.getElementById('cfFormType');
   const cfReference = document.getElementById('cfReference');
+  const cfSigDate = document.getElementById('cfSigDate');
+
   const cfName = document.getElementById('cfName');
   const cfCitizenship = document.getElementById('cfCitizenship');
-  const cfResidentCountry = document.getElementById('cfResidentCountry');
   const cfAddress = document.getElementById('cfAddress');
   const cfCity = document.getElementById('cfCity');
   const cfCountry = document.getElementById('cfCountry');
@@ -270,7 +446,32 @@
   const cfFTIN = document.getElementById('cfFTIN');
   const cfNoFTIN = document.getElementById('cfNoFTIN');
   const cfSignature = document.getElementById('cfSignature');
-  const cfSigDate = document.getElementById('cfSigDate');
+
+  const efEntityType = document.getElementById('efEntityType');
+  const efOrgName = document.getElementById('efOrgName');
+  const efCountryOfIncorp = document.getElementById('efCountryOfIncorp');
+  const efChapter3StatusDisplay = document.getElementById('efChapter3StatusDisplay');
+  const efChapter4StatusDisplay = document.getElementById('efChapter4StatusDisplay');
+  const efPermanentAddress = document.getElementById('efPermanentAddress');
+  const efPermanentCity = document.getElementById('efPermanentCity');
+  const efPermanentCountry = document.getElementById('efPermanentCountry');
+  const efForeignTIN = document.getElementById('efForeignTIN');
+  const efNoFTIN = document.getElementById('efNoFTIN');
+  const efHasNoUSOwners = document.getElementById('efHasNoUSOwners');
+  const efPrintName = document.getElementById('efPrintName');
+  const efMailAddress = document.getElementById('efMailAddress');
+  const efMailCity = document.getElementById('efMailCity');
+  const efMailCountry = document.getElementById('efMailCountry');
+  const efUSTIN = document.getElementById('efUSTIN');
+  const efGIIN = document.getElementById('efGIIN');
+  const efDisregardedName = document.getElementById('efDisregardedName');
+  const efClaimTreaty = document.getElementById('efClaimTreaty');
+  const efTreatyFields = document.getElementById('efTreatyFields');
+  const efTreatyCountry = document.getElementById('efTreatyCountry');
+  const efLOBText = document.getElementById('efLOBText');
+
+  const w8benSection = document.getElementById('w8benSection');
+  const w8beneSection = document.getElementById('w8beneSection');
 
   const statTotal = document.getElementById('statTotal');
   const statCurrent = document.getElementById('statCurrent');
@@ -281,6 +482,8 @@
 
   AOS.init({ duration: 500, once: true });
   feather.replace();
+  toggleFormSections();
+  applyBeneDefaults();
   render();
 
   function loadClients() {
@@ -288,7 +491,7 @@
       const raw = localStorage.getItem(STORAGE_KEY);
       return raw ? JSON.parse(raw) : [];
     } catch (err) {
-      console.error('Failed to load clients from storage:', err);
+      console.error('Failed to load records from storage:', err);
       return [];
     }
   }
@@ -330,33 +533,25 @@
 
   function daysBetween(today, futureDateStr) {
     const future = new Date(futureDateStr + 'T00:00:00');
-    const diff = future - today;
-    return Math.ceil(diff / (1000 * 60 * 60 * 24));
+    return Math.ceil((future - today) / (1000 * 60 * 60 * 24));
   }
 
-  function getStatus(client) {
-    if (!client.sigDate) {
+  function getStatus(record) {
+    if (!record.sigDate) {
       return { key: 'not_created', text: 'Not created', classes: 'bg-gray-100 text-gray-700' };
     }
 
-    const expiry = client.expiryDate || calculateExpiry(client.sigDate);
+    const expiry = record.expiryDate || calculateExpiry(record.sigDate);
     if (!expiry) {
       return { key: 'not_created', text: 'Not created', classes: 'bg-gray-100 text-gray-700' };
     }
 
     const today = new Date();
     today.setHours(0, 0, 0, 0);
-
     const days = daysBetween(today, expiry);
 
-    if (days < 0) {
-      return { key: 'expired', text: 'Expired', classes: 'bg-red-100 text-red-700' };
-    }
-
-    if (days <= 60) {
-      return { key: 'expiring', text: 'Expiring soon', classes: 'bg-amber-100 text-amber-700' };
-    }
-
+    if (days < 0) return { key: 'expired', text: 'Expired', classes: 'bg-red-100 text-red-700' };
+    if (days <= 60) return { key: 'expiring', text: 'Expiring soon', classes: 'bg-amber-100 text-amber-700' };
     return { key: 'current', text: 'Current', classes: 'bg-green-100 text-green-700' };
   }
 
@@ -369,140 +564,213 @@
       .replaceAll("'", '&#039;');
   }
 
+  function safeFilename(name) {
+    return String(name || 'file').replace(/[^\w\d\- ]+/g, '');
+  }
+
+  function toggleFormSections() {
+    const type = cfFormType.value;
+    w8benSection.classList.toggle('hidden', type !== 'W-8BEN');
+    w8beneSection.classList.toggle('hidden', type !== 'W-8BEN-E');
+  }
+
+  function toggleTreatyFields() {
+    efTreatyFields.classList.toggle('hidden', !efClaimTreaty.checked);
+  }
+
+  function populateChapter4Options(entityType, selectedValue) {
+    efChapter4StatusDisplay.innerHTML = '';
+    (CHAPTER4_OPTIONS[entityType] || []).forEach(opt => {
+      const option = document.createElement('option');
+      option.value = opt.value;
+      option.textContent = opt.label;
+      efChapter4StatusDisplay.appendChild(option);
+    });
+
+    const defaults = BENE_DEFAULTS[entityType];
+    efChapter4StatusDisplay.value = selectedValue || defaults.chapter4Value;
+  }
+
+  function applyBeneDefaults() {
+    const entityType = efEntityType.value;
+    const defaults = BENE_DEFAULTS[entityType];
+
+    efCountryOfIncorp.value = 'Australia';
+    efPermanentCountry.value = 'Australia';
+    efChapter3StatusDisplay.value = defaults.chapter3Label;
+    populateChapter4Options(entityType, defaults.chapter4Value);
+    efNoFTIN.checked = true;
+    efHasNoUSOwners.checked = true;
+    efClaimTreaty.checked = defaults.treatyDefault;
+    efTreatyCountry.value = defaults.treatyCountry;
+    efLOBText.value = defaults.lobText;
+    toggleTreatyFields();
+  }
+
+  function resetDefaults() {
+    cfFormType.value = 'W-8BEN';
+    cfCitizenship.value = 'Australia';
+    cfCountry.value = 'Australia';
+    cfNoFTIN.checked = true;
+    cfSigDate.value = new Date().toISOString().slice(0, 10);
+
+    efEntityType.value = 'smsf';
+    efCountryOfIncorp.value = 'Australia';
+    efPermanentCountry.value = 'Australia';
+    efNoFTIN.checked = true;
+    efHasNoUSOwners.checked = true;
+    efClaimTreaty.checked = true;
+    efTreatyCountry.value = 'Australia';
+    efLOBText.value = DEFAULT_LOB_TEXT;
+    applyBeneDefaults();
+  }
+
   function closeModal() {
     cfModal.classList.add('hidden');
     cfModal.classList.remove('flex');
     createForm.reset();
     cfClientId.value = '';
-    cfCitizenship.value = 'Australia';
-    cfResidentCountry.value = 'Australia';
-    cfCountry.value = 'Australia';
-    cfSigDate.value = new Date().toISOString().slice(0, 10);
+    resetDefaults();
+    toggleFormSections();
+    toggleTreatyFields();
   }
 
-  function openCreateFormModal(client = null) {
-    if (client) {
-      modalTitle.textContent = 'Edit W-8BEN';
-      cfClientId.value = client.id || '';
-      cfReference.value = client.reference || '';
-      cfName.value = client.name || '';
-      cfCitizenship.value = client.citizenship || 'Australia';
-      cfResidentCountry.value = client.residentCountry || 'Australia';
-      cfAddress.value = client.address || '';
-      cfCity.value = client.city || '';
-      cfCountry.value = client.country || 'Australia';
-      cfMailAddress.value = client.mailAddress || '';
-      cfMailCity.value = client.mailCity || '';
-      cfMailCountry.value = client.mailCountry || '';
-      cfDOB.value = client.dob || '';
-      cfFTIN.value = client.ftin || '';
-      cfNoFTIN.checked = !!client.noFtin;
-      cfSignature.value = client.signature || client.name || '';
-      cfSigDate.value = client.sigDate || new Date().toISOString().slice(0, 10);
+  function openCreateFormModal(record = null) {
+    if (record) {
+      modalTitle.textContent = 'Edit Form Record';
+      cfClientId.value = record.id || '';
+      cfFormType.value = record.formType || 'W-8BEN';
+      cfReference.value = record.reference || '';
+      cfSigDate.value = record.sigDate || new Date().toISOString().slice(0, 10);
+
+      cfName.value = record.name || '';
+      cfCitizenship.value = record.citizenship || 'Australia';
+      cfAddress.value = record.address || '';
+      cfCity.value = record.city || '';
+      cfCountry.value = record.country || 'Australia';
+      cfMailAddress.value = record.mailAddress || '';
+      cfMailCity.value = record.mailCity || '';
+      cfMailCountry.value = record.mailCountry || '';
+      cfDOB.value = record.dob || '';
+      cfFTIN.value = record.ftin || '';
+      cfNoFTIN.checked = !!record.noFtin;
+      cfSignature.value = record.signature || '';
+
+      efEntityType.value = record.entityType || 'smsf';
+      applyBeneDefaults();
+      efOrgName.value = record.orgName || '';
+      efCountryOfIncorp.value = record.countryOfIncorp || 'Australia';
+      efPermanentAddress.value = record.permanentAddress || '';
+      efPermanentCity.value = record.permanentCity || '';
+      efPermanentCountry.value = record.permanentCountry || 'Australia';
+      efForeignTIN.value = record.entityFtin || '';
+      efNoFTIN.checked = !!record.entityNoFtin;
+      efHasNoUSOwners.checked = record.hasNoUSOwners !== false;
+      efPrintName.value = record.entityPrintName || '';
+      efMailAddress.value = record.entityMailAddress || '';
+      efMailCity.value = record.entityMailCity || '';
+      efMailCountry.value = record.entityMailCountry || '';
+      efUSTIN.value = record.usTin || '';
+      efGIIN.value = record.giin || '';
+      efDisregardedName.value = record.disregardedName || '';
+      efClaimTreaty.checked = !!record.claimTreaty;
+      efTreatyCountry.value = record.treatyCountry || 'Australia';
+      efLOBText.value = record.lobText || DEFAULT_LOB_TEXT;
+      populateChapter4Options(efEntityType.value, record.chapter4Value || '');
+      efChapter3StatusDisplay.value = record.chapter3Label || BENE_DEFAULTS[efEntityType.value].chapter3Label;
     } else {
-      modalTitle.textContent = 'Create W-8BEN';
+      modalTitle.textContent = 'Create Form Record';
       createForm.reset();
       cfClientId.value = '';
-      cfCitizenship.value = 'Australia';
-      cfResidentCountry.value = 'Australia';
-      cfCountry.value = 'Australia';
-      cfSigDate.value = new Date().toISOString().slice(0, 10);
+      resetDefaults();
     }
 
+    toggleFormSections();
+    toggleTreatyFields();
     cfModal.classList.remove('hidden');
     cfModal.classList.add('flex');
   }
 
-  function updateStats(filteredClients = clients) {
-    statTotal.textContent = filteredClients.length;
-    statCurrent.textContent = filteredClients.filter(c => getStatus(c).key === 'current').length;
-    statExpiring.textContent = filteredClients.filter(c => getStatus(c).key === 'expiring').length;
-    statExpired.textContent = filteredClients.filter(c => getStatus(c).key === 'expired').length;
+  function updateStats(filtered = clients) {
+    statTotal.textContent = filtered.length;
+    statCurrent.textContent = filtered.filter(c => getStatus(c).key === 'current').length;
+    statExpiring.textContent = filtered.filter(c => getStatus(c).key === 'expiring').length;
+    statExpired.textContent = filtered.filter(c => getStatus(c).key === 'expired').length;
+  }
+
+  function getDisplayName(record) {
+    return record.formType === 'W-8BEN-E'
+      ? (record.orgName || '')
+      : (record.name || '');
   }
 
   function getFilteredClients() {
     const q = searchInput.value.trim().toLowerCase();
     const filter = statusFilter.value;
 
-    return clients.filter(client => {
-      const status = getStatus(client).key;
-      const matchesSearch =
-        !q ||
-        (client.name || '').toLowerCase().includes(q) ||
-        (client.reference || '').toLowerCase().includes(q) ||
-        (client.address || '').toLowerCase().includes(q) ||
-        (client.city || '').toLowerCase().includes(q);
+    return clients.filter(record => {
+      const status = getStatus(record).key;
+      const haystack = [
+        getDisplayName(record),
+        record.reference || '',
+        record.address || '',
+        record.permanentAddress || '',
+        record.city || '',
+        record.permanentCity || ''
+      ].join(' ').toLowerCase();
 
+      const matchesSearch = !q || haystack.includes(q);
       const matchesStatus = filter === 'all' || status === filter;
       return matchesSearch && matchesStatus;
     });
   }
 
   function render() {
-    const filteredClients = getFilteredClients();
+    const filtered = getFilteredClients();
     clientTableBody.innerHTML = '';
 
-    if (!filteredClients.length) {
-      emptyState.classList.remove('hidden');
-    } else {
-      emptyState.classList.add('hidden');
-    }
+    if (!filtered.length) emptyState.classList.remove('hidden');
+    else emptyState.classList.add('hidden');
 
-    filteredClients
-      .sort((a, b) => (a.name || '').localeCompare(b.name || ''))
-      .forEach(client => {
-        const status = getStatus(client);
-
+    filtered
+      .sort((a, b) => getDisplayName(a).localeCompare(getDisplayName(b)))
+      .forEach(record => {
+        const status = getStatus(record);
         const row = document.createElement('tr');
         row.className = 'hover:bg-gray-50';
 
         row.innerHTML = `
           <td class="px-6 py-4">
-            <div class="font-medium text-gray-900">${escapeHtml(client.name || '')}</div>
-            <div class="text-sm text-gray-500">${escapeHtml(client.city || client.country || '')}</div>
+            <div class="font-medium text-gray-900">${escapeHtml(getDisplayName(record) || '')}</div>
+            <div class="text-sm text-gray-500">${escapeHtml(record.formType === 'W-8BEN-E' ? (record.permanentCity || record.permanentCountry || '') : (record.city || record.country || ''))}</div>
           </td>
-          <td class="px-6 py-4 text-sm text-gray-700">${escapeHtml(client.reference || '—')}</td>
+          <td class="px-6 py-4 text-sm text-gray-700">${escapeHtml(record.formType || '')}</td>
+          <td class="px-6 py-4 text-sm text-gray-700">${escapeHtml(record.reference || '—')}</td>
           <td class="px-6 py-4">
             <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium status-badge ${status.classes}">
               ${escapeHtml(status.text)}
             </span>
           </td>
-          <td class="px-6 py-4 text-sm text-gray-700">${formatDateDisplay(client.sigDate)}</td>
-          <td class="px-6 py-4 text-sm text-gray-700">${formatDateDisplay(client.expiryDate)}</td>
+          <td class="px-6 py-4 text-sm text-gray-700">${formatDateDisplay(record.sigDate)}</td>
+          <td class="px-6 py-4 text-sm text-gray-700">${formatDateDisplay(record.expiryDate)}</td>
           <td class="px-6 py-4">
             <div class="flex flex-wrap gap-2">
-              <button
-                class="inline-flex items-center gap-1 px-3 py-1.5 text-sm bg-blue-50 text-blue-700 rounded-lg hover:bg-blue-100"
-                data-action="download"
-                data-id="${client.id}"
-              >
-                <i data-feather="download" class="w-4 h-4"></i>
-                PDF
+              <button class="inline-flex items-center gap-1 px-3 py-1.5 text-sm bg-blue-50 text-blue-700 rounded-lg hover:bg-blue-100" data-action="download" data-id="${record.id}">
+                <i data-feather="download" class="w-4 h-4"></i> PDF
               </button>
-              <button
-                class="inline-flex items-center gap-1 px-3 py-1.5 text-sm bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200"
-                data-action="edit"
-                data-id="${client.id}"
-              >
-                <i data-feather="edit-2" class="w-4 h-4"></i>
-                Edit
+              <button class="inline-flex items-center gap-1 px-3 py-1.5 text-sm bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200" data-action="edit" data-id="${record.id}">
+                <i data-feather="edit-2" class="w-4 h-4"></i> Edit
               </button>
-              <button
-                class="inline-flex items-center gap-1 px-3 py-1.5 text-sm bg-red-50 text-red-700 rounded-lg hover:bg-red-100"
-                data-action="delete"
-                data-id="${client.id}"
-              >
-                <i data-feather="trash-2" class="w-4 h-4"></i>
-                Delete
+              <button class="inline-flex items-center gap-1 px-3 py-1.5 text-sm bg-red-50 text-red-700 rounded-lg hover:bg-red-100" data-action="delete" data-id="${record.id}">
+                <i data-feather="trash-2" class="w-4 h-4"></i> Delete
               </button>
             </div>
           </td>
         `;
-
         clientTableBody.appendChild(row);
       });
 
-    updateStats(filteredClients);
+    updateStats(filtered);
     feather.replace();
   }
 
@@ -511,12 +779,9 @@
   }
 
   function upsertClient(payload) {
-    const existingIndex = clients.findIndex(c => c.id === payload.id);
-    if (existingIndex >= 0) {
-      clients[existingIndex] = payload;
-    } else {
-      clients.push(payload);
-    }
+    const idx = clients.findIndex(c => c.id === payload.id);
+    if (idx >= 0) clients[idx] = payload;
+    else clients.push(payload);
     saveClients();
     render();
   }
@@ -527,88 +792,253 @@
     render();
   }
 
-  async function fillAndDownloadW8BENOfficial(data, templateUrl = W8BEN_URL) {
-    const { PDFDocument, PDFTextField, PDFCheckBox } = PDFLib;
-
+  async function loadPdf(templateUrl) {
     let resp;
     try {
       resp = await fetch(templateUrl);
     } catch (err) {
-      throw new Error('Could not load w8ben.pdf. Open the page through a local web server like http://localhost:8000, not file:///');
+      throw new Error('Could not load PDF template. Open the page through a local web server like http://localhost:8000, not file:///');
     }
+    if (!resp.ok) throw new Error(`Cannot load template at ${templateUrl} (HTTP ${resp.status})`);
+    return resp.arrayBuffer();
+  }
 
-    if (!resp.ok) {
-      throw new Error(`Cannot load template at ${templateUrl} (HTTP ${resp.status})`);
+  function setTextSafe(form, fields, fieldName, value, PDFTextField) {
+    if (!fields.includes(fieldName)) return;
+    try {
+      const field = form.getField(fieldName);
+      if (field instanceof PDFTextField) field.setText(value ?? '');
+    } catch (e) {
+      console.warn('Could not set', fieldName, e);
     }
+  }
 
-    const pdfDoc = await PDFDocument.load(await resp.arrayBuffer());
-    const form = pdfDoc.getForm();
-    const fields = form.getFields().map(f => f.getName());
-
-    function setTextSafe(fieldName, value) {
-      if (!fields.includes(fieldName)) return;
-      try {
-        const field = form.getField(fieldName);
-        if (field instanceof PDFTextField) {
-          field.setText(value ?? '');
-        }
-      } catch (e) {
-        console.warn('Could not set', fieldName, e);
+  function setCheckSafe(form, fields, fieldName, checked, PDFCheckBox) {
+    if (!fields.includes(fieldName)) return;
+    try {
+      const field = form.getField(fieldName);
+      if (field instanceof PDFCheckBox) {
+        if (checked) field.check();
+        else field.uncheck();
       }
+    } catch (e) {
+      console.warn('Could not set checkbox', fieldName, e);
     }
+  }
 
-    function setCheckSafe(fieldName, checked) {
-      if (!fields.includes(fieldName)) return;
-      try {
-        const field = form.getField(fieldName);
-        if (field instanceof PDFCheckBox) {
-          if (checked) field.check();
-          else field.uncheck();
-        }
-      } catch (e) {
-        console.warn('Could not set checkbox', fieldName, e);
-      }
-    }
-
-    const P = 'topmostSubform[0].Page1[0]';
-
-    // Exact mapping from uploaded PDF
-    setTextSafe(`${P}.f_1[0]`, data.name || '');                               // Line 1 Name
-    setTextSafe(`${P}.f_2[0]`, data.citizenship || 'Australia');               // Line 2 Citizenship
-    setTextSafe(`${P}.f_3[0]`, data.address || '');                            // Line 3 Permanent address
-    setTextSafe(`${P}.f_4[0]`, data.city || '');                               // Line 3 City/state/postcode
-    setTextSafe(`${P}.f_5[0]`, data.country || 'Australia');                   // Line 3 Country
-    setTextSafe(`${P}.f_6[0]`, data.mailAddress || '');                        // Line 4 Mailing address
-    setTextSafe(`${P}.f_7[0]`, data.mailCity || '');                           // Line 4 City/state/postcode
-    setTextSafe(`${P}.f_8[0]`, data.mailCountry || '');                        // Line 4 Country
-    setTextSafe(`${P}.f_10[0]`, data.ftin || '');                              // Line 6a FTIN
-    setCheckSafe(`${P}.c1_01[0]`, !!data.noFtin);                              // Line 6b FTIN not legally required
-    setTextSafe(`${P}.f_11[0]`, data.reference || '');                         // Line 7 Reference number
-    setTextSafe(`${P}.f_12[0]`, formatDateMMDDYYYY(data.dob) || '');           // Line 8 DOB
-    setTextSafe(`${P}.f_13[0]`, data.residentCountry || 'Australia');          // Line 9 Treaty country
-    setCheckSafe(`${P}.c1_02[0]`, true);                                       // Certification checkbox
-    setTextSafe(`${P}.Date[0]`, formatDateMMDDYYYY(data.sigDate) || '');       // Signature date
-    setTextSafe(`${P}.f_21[0]`, data.printName || data.name || '');            // Print name of signer
-
-    // f_20[0] is a real signature field, not a text field. Left blank intentionally.
-
-    const pdfBytes = await pdfDoc.save();
+  function downloadBlob(pdfBytes, fileName) {
     const blob = new Blob([pdfBytes], { type: 'application/pdf' });
     const url = URL.createObjectURL(blob);
-
     const a = document.createElement('a');
     a.href = url;
-    a.download = `${(data.name || 'client').replace(/[^\w\d\- ]+/g, '')}-W8BEN.pdf`;
+    a.download = fileName;
     document.body.appendChild(a);
     a.click();
     a.remove();
-
     URL.revokeObjectURL(url);
+  }
+
+  function applyIndexedCheckboxGroup(form, fields, baseFieldName, count, selectedIndex, PDFCheckBox) {
+    for (let i = 0; i < count; i++) {
+      const full = `${baseFieldName}[${i}]`;
+      setCheckSafe(form, fields, full, String(i) === String(selectedIndex), PDFCheckBox);
+    }
+  }
+
+  function getChapter4Mapping(entityType, chapter4Value) {
+    const match = (CHAPTER4_OPTIONS[entityType] || []).find(opt => opt.value === chapter4Value);
+    return match ? match.mapping : '';
+  }
+
+  function getRuntimePage7Checkboxes(fields) {
+    return fields
+      .filter(name =>
+        name.includes('Page7[0]') &&
+        !name.includes('Radio') &&
+        /c7_|Checkbox|checkbox/i.test(name)
+      )
+      .sort();
+  }
+
+  function applyBeneFollowUp(form, fields, record, PDFCheckBox, PDFTextField) {
+    if (record.entityType === 'smsf') {
+      setCheckSafe(form, fields, 'topmostSubform[0].Page5[0].c5_1[0]', true, PDFCheckBox);
+      setTextSafe(form, fields, 'topmostSubform[0].Page5[0].BulletedList1[0].Bullet1[0].f5_01[0]', 'Australia', PDFTextField);
+      setCheckSafe(form, fields, 'topmostSubform[0].Page5[0].BulletedList1[0].Bullet1[0].c5_2[0]', true, PDFCheckBox);
+      setTextSafe(form, fields, 'topmostSubform[0].Page5[0].BulletedList1[0].Bullet1[0].f5_2[0]', 'Australian Retirement Fund', PDFTextField);
+      return;
+    }
+
+    const page7Checks = getRuntimePage7Checkboxes(fields);
+
+    if (record.chapter4Value === 'active_nffe') {
+      if (page7Checks[0]) setCheckSafe(form, fields, page7Checks[0], true, PDFCheckBox);
+      return;
+    }
+
+    if (record.chapter4Value === 'passive_nffe') {
+      if (page7Checks[1]) setCheckSafe(form, fields, page7Checks[1], true, PDFCheckBox); // 40a
+      if (record.hasNoUSOwners) {
+        if (page7Checks[2]) setCheckSafe(form, fields, page7Checks[2], true, PDFCheckBox); // 40b
+      } else {
+        if (page7Checks[3]) setCheckSafe(form, fields, page7Checks[3], true, PDFCheckBox); // 40c
+      }
+    }
+  }
+
+  async function fillAndDownloadW8BEN(record) {
+    const { PDFDocument, PDFTextField, PDFCheckBox } = PDFLib;
+    const pdfDoc = await PDFDocument.load(await loadPdf(W8BEN_URL));
+    const form = pdfDoc.getForm();
+    const fields = form.getFields().map(f => f.getName());
+    const P = 'topmostSubform[0].Page1[0]';
+
+    setTextSafe(form, fields, `${P}.f_1[0]`, record.name || '', PDFTextField);
+    setTextSafe(form, fields, `${P}.f_2[0]`, record.citizenship || 'Australia', PDFTextField);
+    setTextSafe(form, fields, `${P}.f_3[0]`, record.address || '', PDFTextField);
+    setTextSafe(form, fields, `${P}.f_4[0]`, record.city || '', PDFTextField);
+    setTextSafe(form, fields, `${P}.f_5[0]`, record.country || 'Australia', PDFTextField);
+    setTextSafe(form, fields, `${P}.f_6[0]`, record.mailAddress || '', PDFTextField);
+    setTextSafe(form, fields, `${P}.f_7[0]`, record.mailCity || '', PDFTextField);
+    setTextSafe(form, fields, `${P}.f_8[0]`, record.mailCountry || '', PDFTextField);
+    setTextSafe(form, fields, `${P}.f_10[0]`, record.ftin || '', PDFTextField);
+    setCheckSafe(form, fields, `${P}.c1_01[0]`, !!record.noFtin, PDFCheckBox);
+    setTextSafe(form, fields, `${P}.f_11[0]`, record.reference || '', PDFTextField);
+    setTextSafe(form, fields, `${P}.f_12[0]`, formatDateMMDDYYYY(record.dob) || '', PDFTextField);
+    setTextSafe(form, fields, `${P}.f_13[0]`, record.country || 'Australia', PDFTextField);
+    setCheckSafe(form, fields, `${P}.c1_02[0]`, true, PDFCheckBox);
+    setTextSafe(form, fields, `${P}.Date[0]`, formatDateMMDDYYYY(record.sigDate) || '', PDFTextField);
+    setTextSafe(form, fields, `${P}.f_21[0]`, record.signature || record.name || '', PDFTextField);
+
+    const pdfBytes = await pdfDoc.save();
+    downloadBlob(pdfBytes, `${safeFilename(record.name || 'client')}-W8BEN.pdf`);
+  }
+
+  async function fillAndDownloadW8BENE(record) {
+    const { PDFDocument, PDFTextField, PDFCheckBox } = PDFLib;
+    const pdfDoc = await PDFDocument.load(await loadPdf(W8BENE_URL));
+    const form = pdfDoc.getForm();
+    const fields = form.getFields().map(f => f.getName());
+
+    const P1 = 'topmostSubform[0].Page1[0]';
+    const P2 = 'topmostSubform[0].Page2[0]';
+    const P8 = 'topmostSubform[0].Page8[0]';
+
+    setTextSafe(form, fields, `${P1}.f1_1[0]`, record.orgName || '', PDFTextField);
+    setTextSafe(form, fields, `${P1}.f1_2[0]`, record.countryOfIncorp || 'Australia', PDFTextField);
+    setTextSafe(form, fields, `${P1}.f1_3[0]`, record.disregardedName || '', PDFTextField);
+    setTextSafe(form, fields, `${P1}.f1_4[0]`, record.permanentAddress || '', PDFTextField);
+    setTextSafe(form, fields, `${P1}.f1_5[0]`, record.permanentCity || '', PDFTextField);
+    setTextSafe(form, fields, `${P1}.f1_6[0]`, record.permanentCountry || 'Australia', PDFTextField);
+    setTextSafe(form, fields, `${P1}.f1_7[0]`, record.entityMailAddress || '', PDFTextField);
+    setTextSafe(form, fields, `${P1}.f1_8[0]`, record.entityMailCity || '', PDFTextField);
+    setTextSafe(form, fields, `${P1}.f1_9[0]`, record.entityMailCountry || '', PDFTextField);
+
+    applyIndexedCheckboxGroup(form, fields, `${P1}.c1_1`, 13, record.chapter3Index, PDFCheckBox);
+
+    const chapter4Mapping = getChapter4Mapping(record.entityType, record.chapter4Value);
+    if (chapter4Mapping) {
+      const [col, idx] = chapter4Mapping.split(':');
+      if (col === 'col1') applyIndexedCheckboxGroup(form, fields, `${P1}.Col1[0].c1_3`, 13, idx, PDFCheckBox);
+      if (col === 'col2') applyIndexedCheckboxGroup(form, fields, `${P1}.Col2[0].c1_3`, 19, idx, PDFCheckBox);
+    }
+
+    setTextSafe(form, fields, `${P2}.f2_1[0]`, record.usTin || '', PDFTextField);
+    setTextSafe(form, fields, `${P2}.f2_2[0]`, record.giin || '', PDFTextField);
+    setTextSafe(form, fields, `${P2}.f2_3[0]`, record.entityFtin || '', PDFTextField);
+    setCheckSafe(form, fields, `${P2}.c2_1[0]`, !!record.entityNoFtin, PDFCheckBox);
+    setTextSafe(form, fields, `${P2}.f2_4[0]`, record.reference || '', PDFTextField);
+
+    if (record.claimTreaty) {
+      setCheckSafe(form, fields, `${P2}.c2_3[0]`, true, PDFCheckBox);
+      setTextSafe(form, fields, `${P2}.f2_9[0]`, record.treatyCountry || 'Australia', PDFTextField);
+      setCheckSafe(form, fields, `${P2}.c2_4[0]`, true, PDFCheckBox);
+      setCheckSafe(form, fields, `${P2}.c2_5[5]`, true, PDFCheckBox);
+      setTextSafe(form, fields, `${P2}.f2_10[0]`, record.lobText || DEFAULT_LOB_TEXT, PDFTextField);
+    }
+
+    applyBeneFollowUp(form, fields, record, PDFCheckBox, PDFTextField);
+
+    setTextSafe(form, fields, `${P8}.f8_1[0]`, record.entityPrintName || record.orgName || '', PDFTextField);
+    setTextSafe(form, fields, `${P8}.f8_2[0]`, formatDateMMDDYYYY(record.sigDate) || '', PDFTextField);
+    setCheckSafe(form, fields, `${P8}.c8_3[0]`, true, PDFCheckBox);
+
+    const pdfBytes = await pdfDoc.save();
+    downloadBlob(pdfBytes, `${safeFilename(record.orgName || 'entity')}-W8BENE.pdf`);
+  }
+
+  async function downloadForRecord(record) {
+    if (record.formType === 'W-8BEN-E') return fillAndDownloadW8BENE(record);
+    return fillAndDownloadW8BEN(record);
+  }
+
+  function buildPayload() {
+    const sigDate = cfSigDate.value || new Date().toISOString().slice(0, 10);
+    const expiryDate = calculateExpiry(sigDate);
+    const formType = cfFormType.value;
+
+    const payload = {
+      id: cfClientId.value || uid(),
+      formType,
+      reference: cfReference.value.trim(),
+      sigDate,
+      expiryDate,
+      updatedAt: new Date().toISOString()
+    };
+
+    if (formType === 'W-8BEN') {
+      Object.assign(payload, {
+        name: cfName.value.trim(),
+        citizenship: cfCitizenship.value.trim() || 'Australia',
+        address: cfAddress.value.trim(),
+        city: cfCity.value.trim(),
+        country: cfCountry.value.trim() || 'Australia',
+        mailAddress: cfMailAddress.value.trim(),
+        mailCity: cfMailCity.value.trim(),
+        mailCountry: cfMailCountry.value.trim(),
+        dob: cfDOB.value,
+        ftin: cfFTIN.value.trim(),
+        noFtin: cfNoFTIN.checked,
+        signature: cfSignature.value.trim() || cfName.value.trim()
+      });
+    } else {
+      const beneDefaults = BENE_DEFAULTS[efEntityType.value];
+      Object.assign(payload, {
+        entityType: efEntityType.value,
+        orgName: efOrgName.value.trim(),
+        countryOfIncorp: efCountryOfIncorp.value.trim() || 'Australia',
+        permanentAddress: efPermanentAddress.value.trim(),
+        permanentCity: efPermanentCity.value.trim(),
+        permanentCountry: efPermanentCountry.value.trim() || 'Australia',
+        entityFtin: efForeignTIN.value.trim(),
+        entityNoFtin: efNoFTIN.checked,
+        hasNoUSOwners: efHasNoUSOwners.checked,
+        entityPrintName: efPrintName.value.trim() || efOrgName.value.trim(),
+        entityMailAddress: efMailAddress.value.trim(),
+        entityMailCity: efMailCity.value.trim(),
+        entityMailCountry: efMailCountry.value.trim(),
+        usTin: efUSTIN.value.trim(),
+        giin: efGIIN.value.trim(),
+        disregardedName: efDisregardedName.value.trim(),
+        claimTreaty: efClaimTreaty.checked,
+        treatyCountry: efTreatyCountry.value.trim() || 'Australia',
+        lobText: efLOBText.value.trim() || DEFAULT_LOB_TEXT,
+        chapter3Index: beneDefaults.chapter3Index,
+        chapter3Label: beneDefaults.chapter3Label,
+        chapter4Value: efChapter4StatusDisplay.value,
+        chapter4Label: efChapter4StatusDisplay.options[efChapter4StatusDisplay.selectedIndex]?.text || beneDefaults.chapter4Label
+      });
+    }
+
+    return payload;
   }
 
   addClientBtn.addEventListener('click', () => openCreateFormModal());
   cfClose.addEventListener('click', closeModal);
   cancelBtn.addEventListener('click', closeModal);
+  cfFormType.addEventListener('change', toggleFormSections);
+  efEntityType.addEventListener('change', applyBeneDefaults);
+  efClaimTreaty.addEventListener('change', toggleTreatyFields);
 
   cfModal.addEventListener('click', (e) => {
     if (e.target === cfModal) closeModal();
@@ -623,39 +1053,23 @@
 
     const id = button.dataset.id;
     const action = button.dataset.action;
-    const client = getClientById(id);
-    if (!client) return;
+    const record = getClientById(id);
+    if (!record) return;
 
     if (action === 'edit') {
-      openCreateFormModal(client);
+      openCreateFormModal(record);
       return;
     }
 
     if (action === 'delete') {
-      const ok = confirm(`Delete ${client.name || 'this client'}?`);
+      const ok = confirm(`Delete ${getDisplayName(record) || 'this record'}?`);
       if (ok) deleteClient(id);
       return;
     }
 
     if (action === 'download') {
       try {
-        await fillAndDownloadW8BENOfficial({
-          reference: client.reference,
-          name: client.name,
-          citizenship: client.citizenship,
-          residentCountry: client.residentCountry,
-          address: client.address,
-          city: client.city,
-          country: client.country,
-          mailAddress: client.mailAddress,
-          mailCity: client.mailCity,
-          mailCountry: client.mailCountry,
-          dob: client.dob,
-          ftin: client.ftin,
-          noFtin: client.noFtin,
-          printName: client.signature || client.name,
-          sigDate: client.sigDate
-        });
+        await downloadForRecord(record);
       } catch (err) {
         alert('PDF generation failed: ' + err.message);
       }
@@ -665,51 +1079,11 @@
   createForm.addEventListener('submit', async (e) => {
     e.preventDefault();
 
-    const sigDate = cfSigDate.value || new Date().toISOString().slice(0, 10);
-    const expiryDate = calculateExpiry(sigDate);
-
-    const payload = {
-      id: cfClientId.value || uid(),
-      reference: cfReference.value.trim(),
-      name: cfName.value.trim(),
-      citizenship: cfCitizenship.value.trim() || 'Australia',
-      residentCountry: cfResidentCountry.value.trim() || 'Australia',
-      address: cfAddress.value.trim(),
-      city: cfCity.value.trim(),
-      country: cfCountry.value.trim() || 'Australia',
-      mailAddress: cfMailAddress.value.trim(),
-      mailCity: cfMailCity.value.trim(),
-      mailCountry: cfMailCountry.value.trim(),
-      dob: cfDOB.value,
-      ftin: cfFTIN.value.trim(),
-      noFtin: cfNoFTIN.checked,
-      signature: cfSignature.value.trim() || cfName.value.trim(),
-      sigDate,
-      expiryDate,
-      updatedAt: new Date().toISOString()
-    };
+    const payload = buildPayload();
 
     try {
       upsertClient(payload);
-
-      await fillAndDownloadW8BENOfficial({
-        reference: payload.reference,
-        name: payload.name,
-        citizenship: payload.citizenship,
-        residentCountry: payload.residentCountry,
-        address: payload.address,
-        city: payload.city,
-        country: payload.country,
-        mailAddress: payload.mailAddress,
-        mailCity: payload.mailCity,
-        mailCountry: payload.mailCountry,
-        dob: payload.dob,
-        ftin: payload.ftin,
-        noFtin: payload.noFtin,
-        printName: payload.signature,
-        sigDate: payload.sigDate
-      });
-
+      await downloadForRecord(payload);
       closeModal();
     } catch (err) {
       alert('PDF generation failed: ' + err.message);
